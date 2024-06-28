@@ -1,1 +1,53 @@
-/* You can add global styles to this file, and also import other style files */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --theme-base: #141414;
+  --theme-base-offset: #2F2F2F;
+  --these-base-text: #eee7d9;
+}
+
+.bg-base-offset {
+  background: var(--theme-base-offset);
+  color: var(--these-base-text);
+}
+
+.stretch-layout {
+  @apply min-h-screen flex flex-col;
+
+  &> main {
+    flex-grow: 1;
+  }
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: .3s;
+}
+
+// @keyframes fade-in {
+//   from { opacity: 0; }
+// }
+
+// @keyframes fade-out {
+//   to { opacity: 0; }
+// }
+
+// @keyframes slide-from-right {
+//   from { transform: translateX(30px); }
+// }
+
+// @keyframes slide-to-left {
+//   to { transform: translateX(-30px); }
+// }
+
+// ::view-transition-old(root) {
+//   animation: 90ms cubic-bezier(0.4, 0, 1, 1) both fade-out,
+//     300ms cubic-bezier(0.4, 0, 0.2, 1) both slide-to-left;
+// }
+
+// ::view-transition-new(root) {
+//   animation: 210ms cubic-bezier(0, 0, 0.2, 1) 90ms both fade-in,
+//     300ms cubic-bezier(0.4, 0, 0.2, 1) both slide-from-right;
+// }

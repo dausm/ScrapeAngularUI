@@ -9,5 +9,8 @@ import { RouterOutlet } from '@angular/router';
   styleUrl: './app.component.scss'
 })
 export class AppComponent {
-  title = 'scrape-ui';
+  // const routes: Routes = [
+  //     {path: 'contacts' , component: ContactListComponent},
+  //     {path: 'contact/:id' , component: ContactDetailComponent}
+  // ];
 }
