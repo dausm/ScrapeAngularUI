@@ -1,13 +1,15 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { FooterComponent } from '../../shared/components/footer/footer.component';
 
 @Component({
   selector: 'app-weekly-averages',
   standalone: true,
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, FooterComponent],
   template: `
   <div class="min-h-screen">
     <router-outlet name="nav"></router-outlet>
+    <app-footer></app-footer>
   </div>
   `,
   styleUrl: './weekly-averages.component.scss'

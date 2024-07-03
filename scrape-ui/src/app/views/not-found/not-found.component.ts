@@ -8,6 +8,10 @@ import { RouterOutlet } from '@angular/router';
   template: `
   <div class="min-h-screen">
     <router-outlet name="nav"></router-outlet>
+    <main>
+      <h1>404 Not Found</h1>
+      <p>Call a rescue party! It seems like you got lost.</p>
+    </main>
   </div>
   `,
   styleUrl: './not-found.component.scss'

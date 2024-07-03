@@ -1,10 +1,10 @@
 import { Routes } from '@angular/router';
-import { NavComponent } from './layout/nav/nav.component';
-import { CurrentDayComponent } from './modules/current-day/current-day.component';
-import { CurrentWeekComponent } from './modules/current-week/current-week.component';
-import { HomeComponent } from './modules/home/home.component';
-import { NotFoundComponent } from './modules/not-found/not-found.component';
-import { WeeklyAveragesComponent } from './modules/weekly-averages/weekly-averages.component';
+import { NavComponent } from './shared/components/nav/nav.component';
+import { CurrentDayComponent } from './views/current-day/current-day.component';
+import { CurrentWeekComponent } from './views/current-week/current-week.component';
+import { HomeComponent } from './views/home/home.component';
+import { NotFoundComponent } from './views/not-found/not-found.component';
+import { WeeklyAveragesComponent } from './views/weekly-averages/weekly-averages.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' }, //default route
@@ -21,12 +21,12 @@ export const routes: Routes = [
   },
   { path: 'weekly-averages', component: WeeklyAveragesComponent,
     children: [
-      {path: 'nav', outlet:'nav', component: NavComponent}
+      {path: '', outlet:'nav', component:NavComponent}
     ]
   },
   { path: '**', component: NotFoundComponent,
     children: [
-      {path: 'nav', outlet:'nav', component:NavComponent}
+      {path: '', outlet:'nav', component:NavComponent}
     ]
   }
 ];
