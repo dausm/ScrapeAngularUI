@@ -1,9 +1,13 @@
-import { Component } from '@angular/core';
+import { Component, inject, Signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { FooterComponent } from '../../shared/components/footer/footer.component';
 import * as Highcharts from 'highcharts';
 import HC_Accessibility from 'highcharts/modules/accessibility';
 import { HighchartsChartModule } from 'highcharts-angular';
+import { ComponentStates } from '../../shared/enums/component-states';
+import { CurrentWeekStateService } from './current-week.state.service';
+import { LoadingComponent } from '../../shared/components/loading/loading.component';
+import { GymLocations } from '../../shared/enums/gym-locations';
 HC_Accessibility(Highcharts);
 
 @Component({
@@ -13,122 +17,54 @@ HC_Accessibility(Highcharts);
     <div class="stretch-layout">
       <router-outlet name="nav"></router-outlet>
       <main class="flex flex-col grow h-full p-4 mx-6">
-        <highcharts-chart
-          class="bg-white rounded-xl w-full grow block"
-          [Highcharts]="highcharts"
-          [options]="chartOptions"
-          [callbackFunction]="callbackFunction"
-        ></highcharts-chart>
+        @switch(componentState$$()){
+          @case(ComponentStates.Initial){
+            <div class="bg-white rounded-xl grow justify-center content-center text-black">
+              <label>
+                <span class="block">Select a location to view:</span>
+              <select class="py-3 rounded-full">
+                @for(location of GymLocations.keys(); track $index){
+                  <option>{{ GymLocations.get(location)}}</option>
+                }
+              </select>
+              </label>
+            </div>
+          }
+          @case(ComponentStates.Loading){
+            <div class="bg-white rounded-xl grow flex justify-center content-center">
+              <app-loading></app-loading>
+            </div>
+          }
+          @case(ComponentStates.Ready){
+            <highcharts-chart
+              class="bg-white rounded-xl w-full grow block"
+              [Highcharts]="highcharts"
+              [options]="chartOptions$$()!"
+              [callbackFunction]="callbackFunction"
+            ></highcharts-chart>
+          }
+          @case(ComponentStates.Error){
+            <div class="bg-white rounded-xl w-full grow block">
+              <p>{{error()}}</p>
+            </div>
+          }
+        }
       </main>
 
       <app-footer></app-footer>
     </div>
   `,
-  styleUrl: './current-week.component.scss',
-  imports: [RouterOutlet, FooterComponent, HighchartsChartModule],
+  imports: [RouterOutlet, FooterComponent, LoadingComponent, HighchartsChartModule]
 })
 export class CurrentWeekComponent {
+  ComponentStates: typeof ComponentStates = ComponentStates;
+  GymLocations: typeof GymLocations = GymLocations;
+  currentWeekStateService: CurrentWeekStateService = inject(CurrentWeekStateService);
+  loading = true;
   highcharts: typeof Highcharts = Highcharts;
-  callbackFunction = () => {};
-  chartOptions: Highcharts.Options = {
-    series: [
-      {
-        name: "Walker's Point",
-        data: [
-          0, 0, 0, 0, 5, 10, 12, 12, 50, 70, 30, 20, 5, 9, 19, 37, 83, 29, 0, 0,
-        ],
-        type: 'spline',
-      },
-      {
-        name: 'Brookfield',
-        data: [1, 2, 3],
-        type: 'spline',
-      },
-      {
-        name: 'East Side',
-        data: [1, 2, 3],
-        type: 'spline',
-      },
-    ],
-    chart: {
-      type: 'spline',
-      style: {
-        fontFamily: 'serif',
-        fontSize: '1.5rem'
-      }
-    },
-    title: {
-      text: "Current Day's Occupancy",
-    },
-    subtitle: {
-      text: 'A subtitle or maybe caption here',
-    },
-    legend: {
-      align: 'right',
-      verticalAlign: 'middle',
-      layout: 'vertical',
-    },
-    xAxis: {
-      title: {
-        text: 'Hour',
-      },
-      categories: [
-        '12',
-        '1:00',
-        '2:00',
-        '3',
-        '4',
-        '5',
-        '6',
-        '7',
-        '8',
-        '9',
-        '10',
-        '11',
-        '12',
-        '1',
-        '2',
-        '3',
-        '4',
-        '5',
-        '6',
-        '7',
-        '8',
-        '9',
-        '10',
-        '11',
-      ],
-      accessibility: {
-        description: 'Hour of current day',
-      },
-    },
-    yAxis: {
-      title: {
-        text: 'Occupancy',
-      },
-      accessibility: {
-        description: 'Occupancy',
-      },
-    },
-    tooltip: {
-      stickOnContact: true,
-    },
-    responsive: {
-      rules: [
-        {
-          condition: {
-            maxWidth: 600,
-            minHeight: 500,
-          },
-          chartOptions: {
-            legend: {
-              align: 'center',
-              verticalAlign: 'bottom',
-              layout: 'horizontal',
-            },
-          },
-        },
-      ],
-    },
-  };
+  callbackFunction = () => {}; // this cancels the click event
+
+  chartOptions$$: Signal<Highcharts.Options> = this.currentWeekStateService.chartOptions;
+  componentState$$: Signal<ComponentStates> = this.currentWeekStateService.componentState;
+  error: Signal<string | null> = this.currentWeekStateService.errorMessage;
 }
