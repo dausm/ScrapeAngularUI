@@ -5,12 +5,10 @@ import { RouterOutlet } from '@angular/router';
   selector: 'app-root',
   standalone: true,
   imports: [RouterOutlet],
-  templateUrl: './app.component.html',
-  styleUrl: './app.component.scss'
+  template: `
+  <div class="bg-base-offset">
+    <router-outlet></router-outlet>
+  </div>
+  `
 })
-export class AppComponent {
-  // const routes: Routes = [
-  //     {path: 'contacts' , component: ContactListComponent},
-  //     {path: 'contact/:id' , component: ContactDetailComponent}
-  // ];
-}
+export class AppComponent {}

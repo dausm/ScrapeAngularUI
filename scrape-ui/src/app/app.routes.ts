@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { NavComponent } from './shared/components/nav/nav.component';
 import { CurrentDayComponent } from './views/current-day/current-day.component';
+import { CurrentMonthComponent } from './views/current-month/current-month.component';
 import { CurrentWeekComponent } from './views/current-week/current-week.component';
 import { HomeComponent } from './views/home/home.component';
 import { NotFoundComponent } from './views/not-found/not-found.component';
@@ -15,6 +16,11 @@ export const routes: Routes = [
     ]
   },
   { path: 'current-week', component: CurrentWeekComponent,
+    children: [
+      {path: '', outlet:'nav', component:NavComponent}
+    ]
+  },
+  { path: 'current-month', component: CurrentMonthComponent,
     children: [
       {path: '', outlet:'nav', component:NavComponent}
     ]

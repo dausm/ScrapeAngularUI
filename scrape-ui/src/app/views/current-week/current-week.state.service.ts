@@ -1,9 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { computed, inject, Injectable, signal } from '@angular/core';
-import { catchError, Observable, of, tap } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { catchError, Observable, of, Subject, distinctUntilChanged, tap } from 'rxjs';
 import { CurrentDataService } from '../../core/services/current-data.service';
 import { ComponentStates } from '../../shared/enums/component-states';
+import { GymLocations } from '../../shared/enums/gym-locations';
 import { CurrentWeekDto } from '../../shared/models/current-week.dto.interface';
+import { DailyAverage } from '../../shared/models/daily-average.interface';
 import { setErrorMessage } from '../../shared/utility/errorHandling';
 
 @Injectable({
@@ -16,7 +19,7 @@ export class CurrentWeekStateService {
     chart: {
       type: 'spline',
       style: {
-        fontFamily: 'serif',
+        fontFamily: '"Montserrat", sans-serif',
         fontSize: '1.5rem'
       }
     },
@@ -25,9 +28,9 @@ export class CurrentWeekStateService {
     },
     title: {
       text: "Current Week's Occupancy Trends",
-    },
-    subtitle: {
-      text: 'A subtitle or maybe caption here',
+      style: {
+        fontFamily: '"Montserrat", sans-serif'
+      }
     },
     legend: {
       align: 'right',
@@ -42,7 +45,7 @@ export class CurrentWeekStateService {
         rotation: -65,
         style: {
             fontSize: '9px',
-            fontFamily: 'Verdana, sans-serif'
+            fontFamily: '"Montserrat", sans-serif'
         }
       },
       categories: [
@@ -91,18 +94,55 @@ export class CurrentWeekStateService {
     state: ComponentStates.Initial,
     chartOptions: this.baseChartOptions,
     error: null,
+    location: ''
   });
 
   // Selectors (slices of state)
   errorMessage = computed(() => this.state().error);
   chartOptions = computed(() => this.state().chartOptions);
   componentState = computed(() => this.state().state);
+  location = computed(() => this.state().location);
+
+  // Sources
+  locationName$ = new Subject<Event | null>();
+  optionsByLocation = new Map<string, Highcharts.SeriesSplineOptions[]>();
 
   // Reducers
   constructor() {
-    // this.chartOptions$
-    //   .pipe(tap(() => this.setLoadingIndicator(true)))
-    //   .subscribe((options) => this.setChartOptions(options));
+    this.chartOptions$
+      .pipe(
+        takeUntilDestroyed()
+      )
+      .subscribe((options) => this.setOptionByLocation(options));
+
+    this.locationName$.pipe(
+      takeUntilDestroyed(),
+      distinctUntilChanged(),
+      tap(_ => this.setStateToLoading())
+    ).subscribe((locationName) => {
+      if(!locationName){
+        return;
+      }
+      const element = locationName.target as HTMLSelectElement;
+      let splineOptions = [];
+
+      if(this.optionsByLocation.has(element.value)){
+        const options = this.optionsByLocation.get(element.value);
+        splineOptions = JSON.parse(JSON.stringify(options));
+        splineOptions.length = options?.length;
+      }
+
+      const newTitle = {...this.baseChartOptions.title, text: `${element.value} Current Week's Hourly Averages` }
+      const newChartOptions = {...this.baseChartOptions, series: splineOptions, title: newTitle};
+
+      this.state.update((state) => ({
+        ...state,
+        location: element.value,
+        chartOptions: newChartOptions,
+        state: ComponentStates.Ready,
+      }))
+  });
+
   }
 
   private chartOptions$: Observable<CurrentWeekDto[]> =
@@ -115,36 +155,33 @@ export class CurrentWeekStateService {
     this.state.update((state) => ({
       ...state,
       error: errorMessage,
-      state: ComponentStates.Error,
+      state: ComponentStates.Error
     }));
     return of([]);
   }
 
-  private setChartOptions(currentDays: CurrentWeekDto[]): void {
+  private setOptionByLocation(currentDays: CurrentWeekDto[]): void {
+    let newMap = new Map<string, Highcharts.SeriesSplineOptions[]>();
     let newSeries: Highcharts.SeriesSplineOptions[] = [];
 
-    if(currentDays.length > 0){
-      const first = currentDays[0];
+    currentDays.forEach((value: CurrentWeekDto) => {
+      value.data.forEach((gym: DailyAverage) => newSeries.push({
+          name: gym.dayOfWeek,
+          data: gym.averagesByHour,
+          type: 'spline',
+      }))
+      const name = GymLocations.get(value.name);
 
-        if(first){
-          for (const gym of first.data) {
-            newSeries.push({
-                name: gym.dayOfWeek,
-                data: gym.averagesByHour,
-                type: 'spline',
-            })
-          }
-        }
-    }
+      if(name){
+        newMap.set(name, newSeries);
+      }
+      newSeries = [];
+    })
 
-      this.state.update((state) => ({
-        ...state,
-        state: ComponentStates.Ready,
-        chartOptions: { ...this.baseChartOptions, series: newSeries },
-      }));
-    }
+    this.optionsByLocation = newMap;
+  }
 
-  private setLoadingIndicator(isLoading: boolean) {
+  private setStateToLoading() {
     this.state.update((state) => ({
       ...state,
       state: ComponentStates.Loading,
@@ -156,4 +193,5 @@ export interface CurrentWeekState {
   state: ComponentStates;
   chartOptions: Highcharts.Options;
   error: string | null;
+  location: string;
 }

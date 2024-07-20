@@ -27,7 +27,12 @@ import { RouterLink } from '@angular/router';
           </a>
         </li>
         <li>
-          <a routerLink="/weekly-averages" class="[view-transition-name:nav-third]">
+          <a routerLink="/current-month" class="[view-transition-name:nav-third]">
+            Current Month
+          </a>
+        </li>
+        <li>
+          <a routerLink="/weekly-averages" class="[view-transition-name:nav-fourth]">
             Weekly Averages
           </a>
         </li>

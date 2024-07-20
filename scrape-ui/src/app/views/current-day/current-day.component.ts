@@ -15,7 +15,7 @@ HC_Accessibility(Highcharts);
   template: `
     <div class="stretch-layout">
       <router-outlet name="nav"></router-outlet>
-      <main class="flex flex-col grow h-full p-4 mx-6">
+      <main class="flex flex-col grow h-full py-4 mx-6">
         @switch(componentState$$()){
           @case(ComponentStates.Loading){
             <div class="bg-white rounded-xl grow flex justify-center content-center">

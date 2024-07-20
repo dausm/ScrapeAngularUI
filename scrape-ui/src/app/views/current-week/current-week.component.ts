@@ -16,17 +16,23 @@ HC_Accessibility(Highcharts);
   template: `
     <div class="stretch-layout">
       <router-outlet name="nav"></router-outlet>
-      <main class="flex flex-col grow h-full p-4 mx-6">
+      <main class="flex flex-col grow h-full py--4 mx-6">
         @switch(componentState$$()){
           @case(ComponentStates.Initial){
-            <div class="bg-white rounded-xl grow justify-center content-center text-black">
+            <div>
               <label>
-                <span class="block">Select a location to view:</span>
-              <select class="py-3 rounded-full">
-                @for(location of GymLocations.keys(); track $index){
-                  <option>{{ GymLocations.get(location)}}</option>
-                }
-              </select>
+                <span class="pr-2">Select a location to view:</span>
+                <select
+                  class="rounded-full text-black my-2"
+                  (change)="this.currentWeekStateService.locationName$.next($event)">
+                  @for(location of GymLocations.keys(); track $index){
+                    <option
+                      [attr.selected]="location$$() === GymLocations.get(location) ? '' : null"
+                      [attr.value]="GymLocations.get(location)">
+                      {{ GymLocations.get(location)}}
+                    </option>
+                  }
+                </select>
               </label>
             </div>
           }
@@ -36,16 +42,32 @@ HC_Accessibility(Highcharts);
             </div>
           }
           @case(ComponentStates.Ready){
-            <highcharts-chart
-              class="bg-white rounded-xl w-full grow block"
-              [Highcharts]="highcharts"
-              [options]="chartOptions$$()!"
-              [callbackFunction]="callbackFunction"
-            ></highcharts-chart>
+            <div>
+              <label>
+                  <span class="pr-2">Select a location to view:</span>
+                  <select
+                    class="rounded-full text-black my-2"
+                    (change)="this.currentWeekStateService.locationName$.next($event)">
+                    @for(location of GymLocations.keys(); track $index){
+                      <option
+                        [attr.selected]="location$$() === GymLocations.get(location) ? '' : null"
+                        [attr.value]="GymLocations.get(location)">
+                        {{ GymLocations.get(location)}}
+                      </option>
+                    }
+                  </select>
+                </label>
+              </div>
+              <highcharts-chart
+                class="bg-white rounded-xl w-full grow block"
+                [Highcharts]="highcharts"
+                [options]="chartOptions$$()!"
+                [callbackFunction]="callbackFunction"
+              ></highcharts-chart>
           }
           @case(ComponentStates.Error){
             <div class="bg-white rounded-xl w-full grow block">
-              <p>{{error()}}</p>
+              <p>{{error$$()}}</p>
             </div>
           }
         }
@@ -59,12 +81,13 @@ HC_Accessibility(Highcharts);
 export class CurrentWeekComponent {
   ComponentStates: typeof ComponentStates = ComponentStates;
   GymLocations: typeof GymLocations = GymLocations;
-  currentWeekStateService: CurrentWeekStateService = inject(CurrentWeekStateService);
-  loading = true;
   highcharts: typeof Highcharts = Highcharts;
   callbackFunction = () => {}; // this cancels the click event
 
+  currentWeekStateService: CurrentWeekStateService = inject(CurrentWeekStateService);
+
   chartOptions$$: Signal<Highcharts.Options> = this.currentWeekStateService.chartOptions;
   componentState$$: Signal<ComponentStates> = this.currentWeekStateService.componentState;
-  error: Signal<string | null> = this.currentWeekStateService.errorMessage;
+  error$$: Signal<string | null> = this.currentWeekStateService.errorMessage;
+  location$$: Signal<string> = this.currentWeekStateService.location;
 }
