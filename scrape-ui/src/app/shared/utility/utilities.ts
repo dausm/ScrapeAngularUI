@@ -1,0 +1,34 @@
+import { HttpErrorResponse } from "@angular/common/http";
+
+export function setErrorMessage(err: HttpErrorResponse): string {
+  let errorMessage: string;
+  if (err.error instanceof ErrorEvent) {
+    // A client-side or network error occurred. Handle it accordingly.
+    errorMessage = `An error occurred: ${err.error.message}`;
+  } else {
+    // The backend returned an unsuccessful response code.
+    // The response body may contain clues as to what went wrong,
+    errorMessage = `Backend returned code ${err.status}: ${err.message}`;
+  }
+  console.error(err);
+  return errorMessage;
+}
+
+export function contains(str: string, arr: string[]): boolean {
+  return arr.some(element => str.includes(element));
+}
+
+export function getSelectElementValue($event: Event): string {
+  return ($event.target as HTMLSelectElement).value ?? '';
+}
+
+export function formatMonthDayFromDate(dateAsString: string): string {
+  const date = new Date(dateAsString);
+  const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Months are 0-indexed
+  const day = date.getDate().toString().padStart(2, '0');
+  return `${month}/${day}`;
+}
+
+export function enumKeys<O extends object, K extends keyof O = keyof O>(obj: O): K[] {
+  return Object.keys(obj).filter(k => !Number.isNaN(k)) as K[]
+}

@@ -2,21 +2,29 @@ import { Component, computed, input, InputSignal, output } from '@angular/core';
 import { GymLocations } from '../../enums/gym-locations';
 import { WeekDays } from '../../enums/week-days.map';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FilterOptions } from '../../models/filter-options.interface';
+import { getSelectElementValue, enumKeys } from '../../utility/utilities';
+import { DisplayValueTypes } from '../../enums/display-value-type.enum';
 
 @Component({
   selector: 'app-filtering',
   standalone: true,
   imports: [ReactiveFormsModule],
   template: `
+  @if(filterOptions$$() !== undefined){
     <label>
       <span class="pr-2">Select a gym location:</span>
       <select
+        [formControl]="filterLocation"
         class="rounded-full text-black my-2"
-        (change)="locationChange.emit(getElementValue($event))"
+        (change)="filterLocationChange($event)"
       >
+        @if(filterOptions$$()!.locationName === ''){
+          <option selected></option>
+        }
         @for(location of GymLocations.keys(); track $index){
         <option
-          [attr.selected]="localLocation() === GymLocations.get(location)
+          [attr.selected]="filterOptions$$()!.locationName === GymLocations.get(location)
             ? ''
             : null"
           [attr.value]="GymLocations.get(location)"
@@ -31,26 +39,60 @@ import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
       <legend>Filter by week day:</legend>
       @for(day of WeekDays.keys(); track $index){
       <label [for]="day" class="inline-flex items-center mx-3">
-        <input type="checkbox" [id]="day" name="weekDay" [formControlName]="WeekDays.get(day)!" (change)="weekDayChange.emit(getActiveWeekDays())"/>
+        <input type="checkbox" [id]="day" name="weekDay" [formControlName]="WeekDays.get(day)!" (change)="filterWeekDaysChange()"/>
         <span class="ml-2">{{ WeekDays.get(day)! }}</span>
       </label>
       }
     </fieldset>
+
+    <label>
+      <span>Display Data By:</span>
+      <select
+        [formControl]="filterDisplayValueType"
+        class="rounded-full text-black my-2"
+        (change)="filterDisplayTypeChange()"
+      >
+      @for(display of enumKeys(DisplayValueTypes); track $index){
+        <option
+          [attr.selected]="filterOptions$$()!.displayValueType === DisplayValueTypes[display]
+            ? ''
+            : null"
+          [attr.value]="DisplayValueTypes[display]"
+        >
+          {{ DisplayValueTypes[display] }}
+        </option>
+      }
+      </select>
+    </label>
+
+    <button>Reset</button>
+  }
   `,
 })
 export class FilteringComponent {
-
-  getElementValue($event: Event): string {
-    return ($event.target as HTMLSelectElement).value ?? '';
-  }
-
-  location: InputSignal<string | undefined> = input<string>();
-  localLocation = computed(() => this.location());
-  locationChange = output<string>();
-  weekDayChange = output<string[]>();
-
+  getSelectElementValue = getSelectElementValue;
+  enumKeys = enumKeys;
   GymLocations: typeof GymLocations = GymLocations;
   WeekDays: typeof WeekDays = WeekDays;
+  DisplayValueTypes: typeof DisplayValueTypes = DisplayValueTypes;
+
+  filterDisplayValueType = new FormControl<DisplayValueTypes>(DisplayValueTypes.Average);
+  filterLocation = new FormControl('');
+
+  filterOptionsChange = output<FilterOptions>();
+  filterOptions: InputSignal<FilterOptions | undefined> = input<FilterOptions>();
+  filterOptions$$ = computed(() => {
+    const current = this.filterOptions();
+    if(current){
+      // TODO set the Week day filters
+      // TODO Get Reset to work
+      this.filterDisplayValueType.setValue(current.displayValueType);
+      this.filterLocation.setValue(current.locationName);
+    }
+
+    return current
+    }
+  );
 
   filterByDayFormGroup = new FormGroup({
     Sunday: new FormControl(true),
@@ -60,17 +102,39 @@ export class FilteringComponent {
     Thursday: new FormControl(true),
     Friday: new FormControl(true),
     Saturday: new FormControl(true),
- })
+  })
+
 
  getActiveWeekDays(): string[] {
-    let days: string[] = [];
+   let days: string[] = [];
 
-    Object.keys(this.filterByDayFormGroup.controls).forEach(key => {
-      if(this.filterByDayFormGroup.get(key)?.value){
-        days.push(key);
+   Object.keys(this.filterByDayFormGroup.controls).forEach(key => {
+     if(this.filterByDayFormGroup.get(key)?.value){
+       days.push(key);
       }
     });
 
     return days;
+  }
+
+  filterLocationChange($event: Event) {
+    const options: FilterOptions = this.filterOptions$$()!;
+    const newLocation = getSelectElementValue($event)
+
+    this.filterOptionsChange.emit({...options, locationName: newLocation});
+  }
+
+  filterWeekDaysChange(){
+    const options: FilterOptions = this.filterOptions$$()!;
+    const newWeekDays = this.getActiveWeekDays();
+
+    this.filterOptionsChange.emit({...options, weekDays: newWeekDays});
+  }
+
+  filterDisplayTypeChange() {
+    const options: FilterOptions = this.filterOptions$$()!;
+    const newDisplayType = this.filterDisplayValueType.value!;
+
+    this.filterOptionsChange.emit({...options, displayValueType: newDisplayType});
   }
 }

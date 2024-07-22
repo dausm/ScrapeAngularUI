@@ -7,6 +7,7 @@ import { LoadingComponent } from '../../shared/components/loading/loading.compon
 import { ComponentStates } from '../../shared/enums/component-states';
 import { CurrentMonthStateService } from './current-month-state.service';
 import { FilteringComponent } from '../../shared/components/filtering/filtering.component';
+import { FilterOptions } from '../../shared/models/filter-options.interface';
 
 @Component({
   selector: 'app-current-month',
@@ -17,30 +18,31 @@ import { FilteringComponent } from '../../shared/components/filtering/filtering.
       <main class="flex flex-col grow h-full py--4 mx-6">
         <div>
           <app-filtering
-            [location]="location$$()"
-            (locationChange)="this.currentWeekStateService.locationName$.next($event)"
-            (weekDayChange)="this.currentWeekStateService.filterWeekDays$.next($event)"
+            [filterOptions]="filterOptions$$()"
+            (filterOptionsChange)="this.currentWeekStateService.updateFilter.next($event)"
           ></app-filtering>
         </div>
-        @switch(componentState$$()){ @case(ComponentStates.Loading){
-        <div
-          class="bg-white rounded-xl grow flex justify-center content-center"
-        >
-          <app-loading></app-loading>
-        </div>
-        } @case(ComponentStates.Ready){
-        <highcharts-chart
-          class="bg-white rounded-xl w-full grow block"
-          [Highcharts]="highcharts"
-          [options]="chartOptions$$()"
-          [callbackFunction]="callbackFunction"
-          [oneToOne]="true"
-        ></highcharts-chart>
-        } @case(ComponentStates.Error){
-        <div class="bg-white rounded-xl w-full grow block">
-          <p>{{ error$$() }}</p>
-        </div>
-        } }
+        @switch(componentState$$()){
+          @case(ComponentStates.Loading){
+          <div
+            class="bg-white rounded-xl grow flex justify-center content-center"
+          >
+            <app-loading></app-loading>
+          </div>
+          } @case(ComponentStates.Ready){
+          <highcharts-chart
+            class="bg-white rounded-xl w-full grow block"
+            [Highcharts]="highcharts"
+            [options]="chartOptions$$()"
+            [callbackFunction]="callbackFunction"
+            [oneToOne]="true"
+          ></highcharts-chart>
+          } @case(ComponentStates.Error){
+          <div class="bg-white rounded-xl w-full grow block">
+            <p>{{ error$$() }}</p>
+          </div>
+          }
+        }
       </main>
 
       <app-footer></app-footer>
@@ -68,5 +70,5 @@ export class CurrentMonthComponent {
   componentState$$: Signal<ComponentStates> =
     this.currentWeekStateService.componentState;
   error$$: Signal<string | null> = this.currentWeekStateService.errorMessage;
-  location$$: Signal<string> = this.currentWeekStateService.location;
+  filterOptions$$: Signal<FilterOptions> = this.currentWeekStateService.filterOptions;
 }

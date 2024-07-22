@@ -5,7 +5,7 @@ import { GymLocations } from '../../shared/enums/gym-locations';
 import { CurrentDayDto } from '../../shared/models/current-day.dto.interface';
 import { ComponentStates } from '../../shared/enums/component-states';
 import { HttpErrorResponse } from '@angular/common/http';
-import { setErrorMessage } from '../../shared/utility/errorHandling';
+import { setErrorMessage } from '../../shared/utility/utilities';
 
 @Injectable({
   providedIn: 'root',

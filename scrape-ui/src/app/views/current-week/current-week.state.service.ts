@@ -7,7 +7,7 @@ import { ComponentStates } from '../../shared/enums/component-states';
 import { GymLocations } from '../../shared/enums/gym-locations';
 import { CurrentWeekDto } from '../../shared/models/current-week.dto.interface';
 import { DailyAverage } from '../../shared/models/daily-average.interface';
-import { setErrorMessage } from '../../shared/utility/errorHandling';
+import { setErrorMessage } from '../../shared/utility/utilities';
 
 @Injectable({
   providedIn: 'root'
