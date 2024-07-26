@@ -2,7 +2,7 @@ export const BaseTimeChart: Highcharts.Options = {
     chart: {
       type: 'scatter',
       style: {
-        fontFamily: 'serif',
+        fontFamily: '"Montserrat", sans-serif',
         fontSize: '1.5rem',
       },
     },
@@ -25,7 +25,7 @@ export const BaseTimeChart: Highcharts.Options = {
         rotation: -65,
         style: {
           fontSize: '9px',
-          fontFamily: 'Verdana, sans-serif',
+          fontFamily: '"Montserrat", sans-serif',
         },
       },
       type: 'datetime',

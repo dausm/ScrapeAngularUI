@@ -7,7 +7,12 @@ import { ComponentStates } from '../../shared/enums/component-states';
 import { GymLocations } from '../../shared/enums/gym-locations';
 import { CurrentWeekDto } from '../../shared/models/current-week.dto.interface';
 import { DailyAverage } from '../../shared/models/daily-average.interface';
-import { setErrorMessage } from '../../shared/utility/utilities';
+import { contains, setErrorMessage } from '../../shared/utility/utilities';
+import { WeekDays } from '../../shared/enums/week-days.map';
+import { DisplayValueTypes } from '../../shared/enums/display-value-type.enum';
+import { FilterOptions } from '../../shared/models/filter-options.interface';
+import { Options, SeriesSplineOptions, TitleOptions } from 'highcharts';
+import { BaseChartOptions } from '../../shared/constants/baseChartOptions';
 
 @Injectable({
   providedIn: 'root'
@@ -15,134 +20,134 @@ import { setErrorMessage } from '../../shared/utility/utilities';
 export class CurrentWeekStateService {
   private currentDataService: CurrentDataService = inject(CurrentDataService);
 
-  private baseChartOptions: Highcharts.Options = {
-    chart: {
-      type: 'spline',
-      style: {
-        fontFamily: '"Montserrat", sans-serif',
-        fontSize: '1.5rem'
-      }
-    },
-    time: {
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
-    },
-    title: {
-      text: "Current Week's Occupancy Trends",
-      style: {
-        fontFamily: '"Montserrat", sans-serif'
-      }
-    },
-    legend: {
-      align: 'right',
-      verticalAlign: 'middle',
-      layout: 'vertical',
-    },
-    xAxis: {
-      title: {
-        text: 'Time',
-      },
-      labels: {
-        rotation: -65,
-        style: {
-            fontSize: '9px',
-            fontFamily: '"Montserrat", sans-serif'
-        }
-      },
-      categories: [
-        '12AM', '1AM', '2AM', '3AM', '4AM', '5AM', '6AM', '7AM', '8AM',
-        '9AM', '10AM', '11AM', '12PM', '1PM', '2PM', '3PM', '4PM',
-        '5PM', '6PM', '7PM', '8PM', '9PM', '10PM', '11PM'
-      ],
-      crosshair: true,
-      startOfWeek: 0,
-      accessibility: {
-        description: 'Time of current day',
-      },
-    },
-    yAxis: {
-      title: {
-        text: 'Occupancy',
-      },
-      accessibility: {
-        description: 'Occupancy',
-      },
-    },
-    tooltip: {
-      stickOnContact: true,
-    },
-    responsive: {
-      rules: [
-        {
-          condition: {
-            maxWidth: 600,
-            minHeight: 500,
-          },
-          chartOptions: {
-            legend: {
-              align: 'center',
-              verticalAlign: 'bottom',
-              layout: 'horizontal',
-            },
-          },
-        },
-      ],
-    },
-  };
-
   // Signal that holds the state (initial state)
   private state = signal<CurrentWeekState>({
     state: ComponentStates.Initial,
-    chartOptions: this.baseChartOptions,
+    chartOptions: BaseChartOptions,
     error: null,
-    location: ''
+    filterOptions: {
+      locationName: '',
+      weekDays: Array.from(WeekDays.values()),
+      displayValueType: DisplayValueTypes.Average
+    }
   });
 
   // Selectors (slices of state)
   errorMessage = computed(() => this.state().error);
   chartOptions = computed(() => this.state().chartOptions);
   componentState = computed(() => this.state().state);
-  location = computed(() => this.state().location);
+  filterOptions = computed(() => this.state().filterOptions);
 
   // Sources
-  locationName$ = new Subject<Event | null>();
-  optionsByLocation = new Map<string, Highcharts.SeriesSplineOptions[]>();
+  private averagesByLocation = new Map<
+    string,
+    Highcharts.SeriesSplineOptions[]
+  >();
+  private maximumByLocation = new Map<
+    string,
+    Highcharts.SeriesLollipopOptions[]
+  >();
+private minimumByLocation = new Map<
+    string,
+    Highcharts.SeriesLollipopOptions[]
+  >();
+  updateFilter$ = new Subject<FilterOptions>();
 
   // Reducers
   constructor() {
     this.chartOptions$
       .pipe(
-        takeUntilDestroyed()
+        takeUntilDestroyed(),
+        tap((_) => this.setStateToLoading()),
       )
       .subscribe((options) => this.setOptionByLocation(options));
 
-    this.locationName$.pipe(
+    this.updateFilter$.pipe(
       takeUntilDestroyed(),
-      distinctUntilChanged(),
-      tap(_ => this.setStateToLoading())
-    ).subscribe((locationName) => {
-      if(!locationName){
+      distinctUntilChanged()
+    ).subscribe((options) => {
+      if (!options) {
         return;
       }
-      const element = locationName.target as HTMLSelectElement;
-      let splineOptions = [];
-
-      if(this.optionsByLocation.has(element.value)){
-        const options = this.optionsByLocation.get(element.value);
-        splineOptions = JSON.parse(JSON.stringify(options));
-        splineOptions.length = options?.length;
-      }
-
-      const newTitle = {...this.baseChartOptions.title, text: `${element.value} Current Week's Hourly Averages` }
-      const newChartOptions = {...this.baseChartOptions, series: splineOptions, title: newTitle};
 
       this.state.update((state) => ({
         ...state,
-        location: element.value,
-        chartOptions: newChartOptions,
+        filterOptions: options,
+        chartOptions: this.getBaseChartOptions(options),
         state: ComponentStates.Ready,
-      }))
-  });
+      }));
+    });
+  }
 
+  getBaseChartOptions(options: FilterOptions): Options {
+    let seriesOpts = this.getFilteredOptions(options);
+    return options.displayValueType === DisplayValueTypes.Average
+      ? {
+          ...BaseChartOptions,
+          series: seriesOpts,
+          title: this.getChartTitle(options),
+        }
+      : {
+        ...BaseChartOptions,
+          chart: { type: 'lollipop' },
+          xAxis: {
+            id: 'xAxis-lollipop',
+            type: 'category',
+            title: {
+              text: 'Day',
+            },
+          },
+          plotOptions: {
+            line: {
+              color: '#b2292e',
+            },
+            lollipop: {
+              color: '#b2292e',
+            }
+          },
+          legend: {
+            enabled: false
+          },
+          series: seriesOpts,
+          title: this.getChartTitle(options),
+        };
+  }
+
+  getFilteredOptions(options: FilterOptions): (SeriesSplineOptions | Highcharts.SeriesLollipopOptions)[] {
+    let splineOptions: Highcharts.SeriesSplineOptions[] | Highcharts.SeriesLollipopOptions[] = [];
+
+    switch (options.displayValueType) {
+      case DisplayValueTypes.Average:
+        splineOptions = this.averagesByLocation.has(options.locationName)
+          ? this.averagesByLocation.get(options.locationName)!
+          : splineOptions;
+        break;
+      case DisplayValueTypes.Maximum:
+          splineOptions = this.maximumByLocation.has(options.locationName)
+            ? this.maximumByLocation.get(options.locationName)!
+            : splineOptions;
+          break;
+      case DisplayValueTypes.Minimum:
+        splineOptions = this.minimumByLocation.has(options.locationName)
+          ? this.minimumByLocation.get(options.locationName)!
+          : splineOptions;
+        break;
+      default:
+        break;
+    }
+
+    let filteredOptions = options.weekDays.length === 7
+      ? splineOptions
+      : splineOptions?.filter((option) => contains(option.name!, options.weekDays));
+
+    return filteredOptions;
+  }
+
+  getChartTitle(options: FilterOptions): TitleOptions {
+    return  {
+      ...BaseChartOptions.title,
+      text: `${options.locationName} Previous 7 Day ${options.displayValueType}`,
+    }
   }
 
   private chartOptions$: Observable<CurrentWeekDto[]> =
@@ -161,24 +166,57 @@ export class CurrentWeekStateService {
   }
 
   private setOptionByLocation(currentDays: CurrentWeekDto[]): void {
-    let newMap = new Map<string, Highcharts.SeriesSplineOptions[]>();
-    let newSeries: Highcharts.SeriesSplineOptions[] = [];
+    let newAverageSeries: Highcharts.SeriesSplineOptions[] = [];
+    let mins: Array<(number|[(number|string), (number|null)]|null|Highcharts.PointOptionsObject)> = [];
+    let maxs: Array<(number|[(number|string), (number|null)]|null|Highcharts.PointOptionsObject)> = [];
 
     currentDays.forEach((value: CurrentWeekDto) => {
-      value.data.forEach((gym: DailyAverage) => newSeries.push({
+      value.data.forEach((gym: DailyAverage) => {
+        newAverageSeries.push({
+          id: `avg-${gym.dayOfWeek}`,
           name: gym.dayOfWeek,
-          data: gym.averagesByHour,
-          type: 'spline',
-      }))
+          data: gym.averagesByHour.map( x => {
+            return {
+              id: `avg-${gym.dayOfWeek}-point`,
+              name: gym.dayOfWeek,
+              y: x
+            }}),
+          type: 'spline'
+        })
+        maxs.push({
+          id: `max-${gym.dayOfWeek}`,
+          name: gym.dayOfWeek,
+          y: gym.maxCount})
+        mins.push({
+          id: `min-${gym.dayOfWeek}`,
+          name: gym.dayOfWeek,
+          y: gym.minimumCount})
+      })
       const name = GymLocations.get(value.name);
 
       if(name){
-        newMap.set(name, newSeries);
+        this.averagesByLocation.set(name, newAverageSeries);
+        this.maximumByLocation.set(name, [{
+          id: `max-${name}`,
+          type: 'lollipop',
+          data: maxs
+        }]);
+        this.minimumByLocation.set(name, [{
+          id: `min-${name}`,
+          type: 'lollipop',
+          data: mins
+        }]);
       }
-      newSeries = [];
+
+      newAverageSeries = [];
+      maxs = [];
+      mins = [];
     })
 
-    this.optionsByLocation = newMap;
+    this.state.update((state) => ({
+      ...state,
+      state: ComponentStates.Initial,
+    }));
   }
 
   private setStateToLoading() {
@@ -193,5 +231,5 @@ export interface CurrentWeekState {
   state: ComponentStates;
   chartOptions: Highcharts.Options;
   error: string | null;
-  location: string;
+  filterOptions: FilterOptions;
 }

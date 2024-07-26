@@ -53,11 +53,11 @@ export class CurrentMonthStateService {
   >();
   private maximumByLocation = new Map<
     string,
-    Highcharts.SeriesScatterOptions[]
+    Highcharts.SeriesLollipopOptions[]
   >();
   private minimumByLocation = new Map<
     string,
-    Highcharts.SeriesScatterOptions[]
+    Highcharts.SeriesLollipopOptions[]
   >();
 
   // Reducers
@@ -76,50 +76,45 @@ export class CurrentMonthStateService {
         if (!options) {
           return;
         }
-        let newChartOptions = {
-          ...this.getBaseChartOptions(options),
-          series: this.getFilteredOptions(options),
-          title: this.getChartTitle(options),
-        };
 
         this.state.update((state) => ({
           ...state,
           filterOptions: options,
-          chartOptions: newChartOptions,
+          chartOptions: this.getBaseChartOptions(options),
           state: ComponentStates.Ready,
         }));
       });
   }
 
   getBaseChartOptions(options: FilterOptions): Options {
+    let seriesOpts = this.getFilteredOptions(options);
+    let min = new Date();
+    min.setMonth(-1);
+
     return options.displayValueType === DisplayValueTypes.Average
-      ? {...BaseChartOptions,
-        legend: {...BaseChartOptions.legend, enabled: true},
-        xAxis: {...BaseChartOptions.xAxis},
-        tooltip: {...BaseChartOptions.tooltip}
-      }
-      : {...BaseTimeChart,
-          chart: { type: 'scatter' },
-          // legend: {...BaseTimeChart.legend, enabled: false},
-          tooltip: {
-            ...BaseTimeChart.tooltip,
-            pointFormatter: function() {
-              let point: Point = this,
-                series = point.series;
-                return `${options.displayValueType}: ${series.data[0].y}`;
-            }
+      ? {
+          ...BaseChartOptions,
+          series: seriesOpts,
+          title: this.getChartTitle(options),
+        }
+      : {
+          chart: { type: 'lollipop' },
+          time: {
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
           },
           xAxis: {
-            type: 'datetime',
-            labels: {
-              format: '{value:%m/%e}'
-            }
-          }
+            type: 'category',
+            crosshair: false,
+            // ceiling: new Date().getTime(),
+            // floor: min.getTime()
+          },
+          series: seriesOpts,
+          title: this.getChartTitle(options),
         };
   }
 
-  getFilteredOptions(options: FilterOptions): (SeriesSplineOptions | SeriesScatterOptions)[] {
-    let splineOptions: Highcharts.SeriesSplineOptions[] | SeriesScatterOptions[] = [];
+  getFilteredOptions(options: FilterOptions): (SeriesSplineOptions | Highcharts.SeriesLollipopOptions)[] {
+    let splineOptions: Highcharts.SeriesSplineOptions[] | Highcharts.SeriesLollipopOptions[] = [];
 
     switch (options.displayValueType) {
       case DisplayValueTypes.Average:
@@ -167,26 +162,30 @@ export class CurrentMonthStateService {
 
   private setOptionByLocation(currentDays: CurrentWeekDto[]): void {
     let newAverageSeries: Highcharts.SeriesSplineOptions[] = [];
-    let newMaximumSeries: Highcharts.SeriesScatterOptions[] = [];
-    let newMinimumSeries: Highcharts.SeriesScatterOptions[] = [];
+    let newMaximumSeries: Highcharts.SeriesLollipopOptions[] = [];
+    let newMinimumSeries: Highcharts.SeriesLollipopOptions[] = [];
 
     currentDays.forEach((value: CurrentWeekDto) => {
       value.data.forEach((day: DailyAverage) => {
-        const seriesName = `${day.dayOfWeek} ${formatMonthDayFromDate(day.dateCalculated)}`;
+        const formattedDate = formatMonthDayFromDate(day.dateCalculated);
+        const seriesName = `${day.dayOfWeek} ${formattedDate}`;
         newAverageSeries.push({
+          id: seriesName,
           name: seriesName,
           data: day.averagesByHour,
           type: 'spline',
         });
         newMaximumSeries.push({
+          id: seriesName,
           name: seriesName,
-          type: 'scatter',
-          data: [[new Date(day.maxTime).getTime(), day.maxCount]]
+          type: 'lollipop',
+          data: [day.maxCount]
         });
         newMinimumSeries.push({
+          id: seriesName,
           name: seriesName,
-          type: 'scatter',
-          data: [[new Date(day.minimumTime).getTime(), day.minimumCount]]
+          type: 'lollipop',
+          data: [day.minimumCount]
         });
       });
 

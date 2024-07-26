@@ -22,6 +22,11 @@ export function getSelectElementValue($event: Event): string {
   return ($event.target as HTMLSelectElement).value ?? '';
 }
 
+/**
+ * Formats a string as Date into MM/DD format
+ * @param dateAsString
+ * @returns string in MM/DD format
+ */
 export function formatMonthDayFromDate(dateAsString: string): string {
   const date = new Date(dateAsString);
   const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Months are 0-indexed
@@ -31,4 +36,8 @@ export function formatMonthDayFromDate(dateAsString: string): string {
 
 export function enumKeys<O extends object, K extends keyof O = keyof O>(obj: O): K[] {
   return Object.keys(obj).filter(k => !Number.isNaN(k)) as K[]
+}
+
+export function enumValues<O extends object>(obj: O): Array<O[keyof O]> {
+  return Object.values(obj).filter(k => !Number.isNaN(k)) as Array<O[keyof O]>
 }

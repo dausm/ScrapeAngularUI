@@ -1,13 +1,21 @@
-import { Component, effect, inject, NgZone, Signal } from '@angular/core';
+import { Component, effect, inject, Signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import Highcharts from 'highcharts';
+import Highcharts, { PointOptionsType } from 'highcharts';
 import { HighchartsChartModule } from 'highcharts-angular';
+import HC_more from "highcharts/highcharts-more";
+import HC_Accessibility from 'highcharts/modules/accessibility';
+import HC_Dumbbell from "highcharts/modules/dumbbell";
+import HC_Lollipop from "highcharts/modules/lollipop";
 import { FooterComponent } from '../../shared/components/footer/footer.component';
 import { LoadingComponent } from '../../shared/components/loading/loading.component';
 import { ComponentStates } from '../../shared/enums/component-states';
 import { CurrentMonthStateService } from './current-month-state.service';
 import { FilteringComponent } from '../../shared/components/filtering/filtering.component';
 import { FilterOptions } from '../../shared/models/filter-options.interface';
+HC_Accessibility(Highcharts);
+HC_more(Highcharts);
+HC_Dumbbell(Highcharts);
+HC_Lollipop(Highcharts);
 
 @Component({
   selector: 'app-current-month',
@@ -19,7 +27,7 @@ import { FilterOptions } from '../../shared/models/filter-options.interface';
         <div>
           <app-filtering
             [filterOptions]="filterOptions$$()"
-            (filterOptionsChange)="this.currentWeekStateService.updateFilter.next($event)"
+            (filterOptionsChange)="this.currentMonthStateService.updateFilter.next($event)"
           ></app-filtering>
         </div>
         @switch(componentState$$()){
@@ -59,16 +67,28 @@ import { FilterOptions } from '../../shared/models/filter-options.interface';
 export class CurrentMonthComponent {
   ComponentStates: typeof ComponentStates = ComponentStates;
   highcharts: typeof Highcharts = Highcharts;
-  callbackFunction = () => {}; // this cancels the click event
+  chartRef!: Highcharts.Chart;
 
-  currentWeekStateService: CurrentMonthStateService = inject(
+  callbackFunction: Highcharts.ChartCallbackFunction = (chart) => {
+    this.chartRef = chart;
+  };
+
+  currentMonthStateService: CurrentMonthStateService = inject(
     CurrentMonthStateService
   );
 
   chartOptions$$: Signal<Highcharts.Options> =
-    this.currentWeekStateService.chartOptions;
+    this.currentMonthStateService.chartOptions;
   componentState$$: Signal<ComponentStates> =
-    this.currentWeekStateService.componentState;
-  error$$: Signal<string | null> = this.currentWeekStateService.errorMessage;
-  filterOptions$$: Signal<FilterOptions> = this.currentWeekStateService.filterOptions;
+    this.currentMonthStateService.componentState;
+  error$$: Signal<string | null> = this.currentMonthStateService.errorMessage;
+  filterOptions$$: Signal<FilterOptions> = this.currentMonthStateService.filterOptions;
+
+  constructor(){
+    effect(() => {
+      if(this.chartOptions$$().series){
+        // this.chartRef.series[0].setData(this.chartOptions$$().series as PointOptionsType[]);
+      }
+    })
+  }
 }

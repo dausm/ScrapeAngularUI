@@ -1,14 +1,21 @@
-import { Component, inject, Signal } from '@angular/core';
+import { Component, effect, inject, Signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { FooterComponent } from '../../shared/components/footer/footer.component';
 import * as Highcharts from 'highcharts';
+import HC_more from "highcharts/highcharts-more";
 import HC_Accessibility from 'highcharts/modules/accessibility';
+import HC_Dumbbell from "highcharts/modules/dumbbell";
+import HC_Lollipop from "highcharts/modules/lollipop";
 import { HighchartsChartModule } from 'highcharts-angular';
 import { ComponentStates } from '../../shared/enums/component-states';
 import { CurrentWeekStateService } from './current-week.state.service';
 import { LoadingComponent } from '../../shared/components/loading/loading.component';
-import { GymLocations } from '../../shared/enums/gym-locations';
+import { FilteringComponent } from '../../shared/components/filtering/filtering.component';
+import { FilterOptions } from '../../shared/models/filter-options.interface';
 HC_Accessibility(Highcharts);
+HC_more(Highcharts);
+HC_Dumbbell(Highcharts);
+HC_Lollipop(Highcharts);
 
 @Component({
   selector: 'app-current-week',
@@ -17,58 +24,31 @@ HC_Accessibility(Highcharts);
     <div class="stretch-layout">
       <router-outlet name="nav"></router-outlet>
       <main class="flex flex-col grow h-full py--4 mx-6">
+        <div>
+          <app-filtering
+            [filterOptions]="filterOptions$$()"
+            (filterOptionsChange)="this.currentWeekStateService.updateFilter$.next($event)"
+          ></app-filtering>
+        </div>
         @switch(componentState$$()){
-          @case(ComponentStates.Initial){
-            <div>
-              <label>
-                <span class="pr-2">Select a location to view:</span>
-                <select
-                  class="rounded-full text-black my-2"
-                  (change)="this.currentWeekStateService.locationName$.next($event)">
-                  @for(location of GymLocations.keys(); track $index){
-                    <option
-                      [attr.selected]="location$$() === GymLocations.get(location) ? '' : null"
-                      [attr.value]="GymLocations.get(location)">
-                      {{ GymLocations.get(location)}}
-                    </option>
-                  }
-                </select>
-              </label>
-            </div>
-          }
           @case(ComponentStates.Loading){
-            <div class="bg-white rounded-xl grow flex justify-center content-center">
-              <app-loading></app-loading>
-            </div>
-          }
-          @case(ComponentStates.Ready){
-            <div>
-              <label>
-                  <span class="pr-2">Select a location to view:</span>
-                  <select
-                    class="rounded-full text-black my-2"
-                    (change)="this.currentWeekStateService.locationName$.next($event)">
-                    @for(location of GymLocations.keys(); track $index){
-                      <option
-                        [attr.selected]="location$$() === GymLocations.get(location) ? '' : null"
-                        [attr.value]="GymLocations.get(location)">
-                        {{ GymLocations.get(location)}}
-                      </option>
-                    }
-                  </select>
-                </label>
-              </div>
-              <highcharts-chart
-                class="bg-white rounded-xl w-full grow block"
-                [Highcharts]="highcharts"
-                [options]="chartOptions$$()!"
-                [callbackFunction]="callbackFunction"
-              ></highcharts-chart>
-          }
-          @case(ComponentStates.Error){
-            <div class="bg-white rounded-xl w-full grow block">
-              <p>{{error$$()}}</p>
-            </div>
+          <div
+            class="bg-white rounded-xl grow flex justify-center content-center"
+          >
+            <app-loading></app-loading>
+          </div>
+          } @case(ComponentStates.Ready){
+          <highcharts-chart
+            class="bg-white rounded-xl w-full grow block"
+            [Highcharts]="highcharts"
+            [options]="chartOptions$$()"
+            [callbackFunction]="callbackFunction"
+            [oneToOne]="true"
+          ></highcharts-chart>
+          } @case(ComponentStates.Error){
+          <div class="bg-white rounded-xl w-full grow block">
+            <p>{{ error$$() }}</p>
+          </div>
           }
         }
       </main>
@@ -76,18 +56,32 @@ HC_Accessibility(Highcharts);
       <app-footer></app-footer>
     </div>
   `,
-  imports: [RouterOutlet, FooterComponent, LoadingComponent, HighchartsChartModule]
+  imports: [RouterOutlet, FooterComponent, LoadingComponent, FilteringComponent, HighchartsChartModule]
 })
 export class CurrentWeekComponent {
   ComponentStates: typeof ComponentStates = ComponentStates;
-  GymLocations: typeof GymLocations = GymLocations;
   highcharts: typeof Highcharts = Highcharts;
-  callbackFunction = () => {}; // this cancels the click event
+  chartRef!: Highcharts.Chart;
+  callbackFunction: Highcharts.ChartCallbackFunction = (chart) => {
+    this.chartRef = chart;
+  };
+  isUpdated: boolean = false;
 
   currentWeekStateService: CurrentWeekStateService = inject(CurrentWeekStateService);
 
   chartOptions$$: Signal<Highcharts.Options> = this.currentWeekStateService.chartOptions;
   componentState$$: Signal<ComponentStates> = this.currentWeekStateService.componentState;
   error$$: Signal<string | null> = this.currentWeekStateService.errorMessage;
-  location$$: Signal<string> = this.currentWeekStateService.location;
+  filterOptions$$: Signal<FilterOptions> = this.currentWeekStateService.filterOptions;
+
+  constructor(){
+    effect(()=> {
+      if(this.chartOptions$$() && this.chartRef){
+        console.log('update')
+        this.chartRef.showLoading();
+        this.chartRef.update(this.chartOptions$$(), true, true);
+        this.chartRef.hideLoading();
+      }
+    })
+  }
 }

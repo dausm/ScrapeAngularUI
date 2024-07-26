@@ -1,14 +1,12 @@
 export const BaseChartOptions: Highcharts.Options = {
   chart: {
     type: 'scatter',
+    allowMutatingData: false,
     style: {
       fontFamily: '"Montserrat", sans-serif',
       fontSize: '1.5rem',
     },
-    displayErrors: true,
-  },
-  time: {
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    displayErrors: true
   },
   title: {
     text: "Month's Occupancy Trends",
@@ -17,11 +15,13 @@ export const BaseChartOptions: Highcharts.Options = {
     },
   },
   legend: {
+    enabled: true,
     align: 'right',
     verticalAlign: 'middle',
     layout: 'vertical',
   },
   xAxis: {
+    id: 'xAxis-linear',
     title: {
       text: 'Time',
     },
@@ -58,6 +58,7 @@ export const BaseChartOptions: Highcharts.Options = {
       '10PM',
       '11PM',
     ],
+    type: 'linear',
     crosshair: true,
     startOfWeek: 0,
     accessibility: {
