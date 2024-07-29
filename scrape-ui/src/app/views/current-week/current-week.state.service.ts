@@ -13,6 +13,7 @@ import { DisplayValueTypes } from '../../shared/enums/display-value-type.enum';
 import { FilterOptions } from '../../shared/models/filter-options.interface';
 import { Options, SeriesSplineOptions, TitleOptions } from 'highcharts';
 import { BaseChartOptions } from '../../shared/constants/baseChartOptions';
+import Highcharts from 'highcharts';
 
 @Injectable({
   providedIn: 'root'
@@ -136,11 +137,22 @@ private minimumByLocation = new Map<
         break;
     }
 
-    let filteredOptions = options.weekDays.length === 7
-      ? splineOptions
-      : splineOptions?.filter((option) => contains(option.name!, options.weekDays));
+    if(options.weekDays.length === 7) {
+      return splineOptions;
+    }
 
-    return filteredOptions;
+    if(options.displayValueType == DisplayValueTypes.Average){
+      return splineOptions?.filter((option) => contains(option.name!, options.weekDays));
+    }
+
+    let copy:(SeriesSplineOptions | Highcharts.SeriesLollipopOptions)[] =
+      JSON.parse(JSON.stringify(splineOptions));
+    copy[0].data = copy[0].data?.filter((x) => {
+      return ((<Highcharts.PointOptionsObject>x).name)
+        ? contains((<Highcharts.PointOptionsObject>x).name!, options.weekDays)
+        : x;
+    });
+    return copy;
   }
 
   getChartTitle(options: FilterOptions): TitleOptions {
@@ -167,8 +179,8 @@ private minimumByLocation = new Map<
 
   private setOptionByLocation(currentDays: CurrentWeekDto[]): void {
     let newAverageSeries: Highcharts.SeriesSplineOptions[] = [];
-    let mins: Array<(number|[(number|string), (number|null)]|null|Highcharts.PointOptionsObject)> = [];
-    let maxs: Array<(number|[(number|string), (number|null)]|null|Highcharts.PointOptionsObject)> = [];
+    let mins: Array<Highcharts.PointOptionsObject> = [];
+    let maximums: Array<Highcharts.PointOptionsObject> = [];
 
     currentDays.forEach((value: CurrentWeekDto) => {
       value.data.forEach((gym: DailyAverage) => {
@@ -183,7 +195,7 @@ private minimumByLocation = new Map<
             }}),
           type: 'spline'
         })
-        maxs.push({
+        maximums.push({
           id: `max-${gym.dayOfWeek}`,
           name: gym.dayOfWeek,
           y: gym.maxCount})
@@ -199,7 +211,7 @@ private minimumByLocation = new Map<
         this.maximumByLocation.set(name, [{
           id: `max-${name}`,
           type: 'lollipop',
-          data: maxs
+          data: maximums
         }]);
         this.minimumByLocation.set(name, [{
           id: `min-${name}`,
@@ -209,7 +221,7 @@ private minimumByLocation = new Map<
       }
 
       newAverageSeries = [];
-      maxs = [];
+      maximums = [];
       mins = [];
     })
 

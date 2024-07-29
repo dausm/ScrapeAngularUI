@@ -10,9 +10,6 @@ export const BaseChartOptions: Highcharts.Options = {
   },
   title: {
     text: "Month's Occupancy Trends",
-    style: {
-      fontFamily: '"Montserrat", sans-serif',
-    },
   },
   legend: {
     enabled: true,
@@ -26,7 +23,7 @@ export const BaseChartOptions: Highcharts.Options = {
       text: 'Time',
     },
     labels: {
-      rotation: -65,
+      rotation: -45,
       style: {
         fontSize: '9px',
         fontFamily: '"Montserrat", sans-serif',

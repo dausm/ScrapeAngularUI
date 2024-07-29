@@ -68,7 +68,6 @@ export class CurrentMonthComponent {
   ComponentStates: typeof ComponentStates = ComponentStates;
   highcharts: typeof Highcharts = Highcharts;
   chartRef!: Highcharts.Chart;
-
   callbackFunction: Highcharts.ChartCallbackFunction = (chart) => {
     this.chartRef = chart;
   };
@@ -81,13 +80,17 @@ export class CurrentMonthComponent {
     this.currentMonthStateService.chartOptions;
   componentState$$: Signal<ComponentStates> =
     this.currentMonthStateService.componentState;
-  error$$: Signal<string | null> = this.currentMonthStateService.errorMessage;
-  filterOptions$$: Signal<FilterOptions> = this.currentMonthStateService.filterOptions;
+  error$$: Signal<string | null> =
+    this.currentMonthStateService.errorMessage;
+  filterOptions$$: Signal<FilterOptions> =
+    this.currentMonthStateService.filterOptions;
 
   constructor(){
     effect(() => {
-      if(this.chartOptions$$().series){
-        // this.chartRef.series[0].setData(this.chartOptions$$().series as PointOptionsType[]);
+      if (this.chartOptions$$() && this.chartRef) {
+        this.chartRef.showLoading();
+        this.chartRef.update(this.chartOptions$$(), true, true);
+        this.chartRef.hideLoading();
       }
     })
   }
