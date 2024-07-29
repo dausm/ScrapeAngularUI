@@ -34,6 +34,16 @@ export function formatMonthDayFromDate(dateAsString: string): string {
   return `${month}/${day}`;
 }
 
+/**
+ * Formats a string as Date into hh:mm format
+ * @param dateAsString
+ * @returns string in hh:mm format
+ */
+export function formatHourMinuteFromDate(dateAsString: string): string {
+  const date = new Date(dateAsString);
+  return date.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+}
+
 export function enumKeys<O extends object, K extends keyof O = keyof O>(obj: O): K[] {
   return Object.keys(obj).filter(k => !Number.isNaN(k)) as K[]
 }

@@ -25,7 +25,7 @@ export const BaseChartOptions: Highcharts.Options = {
     labels: {
       rotation: -45,
       style: {
-        fontSize: '9px',
+        fontSize: '.875rem',
         fontFamily: '"Montserrat", sans-serif',
       },
     },

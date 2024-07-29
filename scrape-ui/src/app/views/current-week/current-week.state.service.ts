@@ -7,7 +7,7 @@ import { ComponentStates } from '../../shared/enums/component-states';
 import { GymLocations } from '../../shared/enums/gym-locations';
 import { CurrentWeekDto } from '../../shared/models/current-week.dto.interface';
 import { DailyAverage } from '../../shared/models/daily-average.interface';
-import { contains, setErrorMessage } from '../../shared/utility/utilities';
+import { contains, formatHourMinuteFromDate, setErrorMessage } from '../../shared/utility/utilities';
 import { WeekDays } from '../../shared/enums/week-days.map';
 import { DisplayValueTypes } from '../../shared/enums/display-value-type.enum';
 import { FilterOptions } from '../../shared/models/filter-options.interface';
@@ -184,6 +184,8 @@ private minimumByLocation = new Map<
 
     currentDays.forEach((value: CurrentWeekDto) => {
       value.data.forEach((gym: DailyAverage) => {
+        var minTime = formatHourMinuteFromDate(gym.minimumTime);
+        var maxTime = formatHourMinuteFromDate(gym.maxTime);
         newAverageSeries.push({
           id: `avg-${gym.dayOfWeek}`,
           name: gym.dayOfWeek,
@@ -197,11 +199,11 @@ private minimumByLocation = new Map<
         })
         maximums.push({
           id: `max-${gym.dayOfWeek}`,
-          name: gym.dayOfWeek,
+          name: `${gym.dayOfWeek} ${maxTime}`,
           y: gym.maxCount})
         mins.push({
           id: `min-${gym.dayOfWeek}`,
-          name: gym.dayOfWeek,
+          name: `${gym.dayOfWeek} ${minTime}`,
           y: gym.minimumCount})
       })
       const name = GymLocations.get(value.name);

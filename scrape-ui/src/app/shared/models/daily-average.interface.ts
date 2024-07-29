@@ -5,8 +5,8 @@ export interface DailyAverage {
   dayOfWeek: string,
   maxCount: number,
   minimumCount: number,
-  maxTime: number,
-  minimumTime: number,
+  maxTime: string,
+  minimumTime: string,
   averageCount: number,
   averagesByHour: number[]
 }
