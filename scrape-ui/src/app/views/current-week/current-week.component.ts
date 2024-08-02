@@ -2,10 +2,7 @@ import { Component, effect, inject, Signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { FooterComponent } from '../../shared/components/footer/footer.component';
 import * as Highcharts from 'highcharts';
-import HC_more from 'highcharts/highcharts-more';
 import HC_Accessibility from 'highcharts/modules/accessibility';
-import HC_Dumbbell from 'highcharts/modules/dumbbell';
-import HC_Lollipop from 'highcharts/modules/lollipop';
 import { HighchartsChartModule } from 'highcharts-angular';
 import { ComponentStates } from '../../shared/enums/component-states';
 import { CurrentWeekStateService } from './current-week.state.service';
@@ -13,9 +10,6 @@ import { LoadingComponent } from '../../shared/components/loading/loading.compon
 import { FilteringComponent } from '../../shared/components/filtering/filtering.component';
 import { FilterOptions } from '../../shared/models/filter-options.interface';
 HC_Accessibility(Highcharts);
-HC_more(Highcharts);
-HC_Dumbbell(Highcharts);
-HC_Lollipop(Highcharts);
 
 @Component({
   selector: 'app-current-week',

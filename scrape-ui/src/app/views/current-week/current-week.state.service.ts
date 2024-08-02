@@ -7,13 +7,14 @@ import { ComponentStates } from '../../shared/enums/component-states';
 import { GymLocations } from '../../shared/enums/gym-locations';
 import { CurrentWeekDto } from '../../shared/models/current-week.dto.interface';
 import { DailyAverage } from '../../shared/models/daily-average.interface';
-import { contains, formatHourMinuteFromDate, setErrorMessage } from '../../shared/utility/utilities';
+import { contains, getTimeInMilliseconds, setErrorMessage } from '../../shared/utility/utilities';
 import { WeekDays } from '../../shared/enums/week-days.map';
 import { DisplayValueTypes } from '../../shared/enums/display-value-type.enum';
 import { FilterOptions } from '../../shared/models/filter-options.interface';
-import { Options, SeriesSplineOptions, TitleOptions } from 'highcharts';
+import { Options, PointOptionsObject, SeriesSplineOptions, TitleOptions } from 'highcharts';
 import { BaseChartOptions } from '../../shared/constants/baseChartOptions';
 import Highcharts from 'highcharts';
+import { DateOptions, DateTimeFormat, DateTimeMaximum, DateTimeMinimum } from '../../shared/constants/highchart-settings';
 
 @Injectable({
   providedIn: 'root'
@@ -46,11 +47,11 @@ export class CurrentWeekStateService {
   >();
   private maximumByLocation = new Map<
     string,
-    Highcharts.SeriesLollipopOptions[]
+    Highcharts.SeriesScatterOptions[]
   >();
 private minimumByLocation = new Map<
     string,
-    Highcharts.SeriesLollipopOptions[]
+    Highcharts.SeriesScatterOptions[]
   >();
   updateFilter$ = new Subject<FilterOptions>();
 
@@ -90,32 +91,48 @@ private minimumByLocation = new Map<
         }
       : {
         ...BaseChartOptions,
-          chart: { type: 'lollipop' },
+          chart: { type: 'scatter' },
+          time: {
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          },
           xAxis: {
-            id: 'xAxis-lollipop',
-            type: 'category',
+            id: 'xAxis-scatter',
             title: {
-              text: 'Day',
+              text: 'Time of Day',
             },
+            startOfWeek: 0,
+            type: 'datetime',
+            crosshair: true,
+            dateTimeLabelFormats: {
+              second: '%H:%M %P',
+            },
+            min: DateTimeMinimum,
+            max: DateTimeMaximum,
+            showLastLabel: false,
+            showFirstLabel: false
           },
           plotOptions: {
             line: {
               color: '#b2292e',
             },
-            lollipop: {
+            scatter: {
               color: '#b2292e',
             }
           },
           legend: {
             enabled: false
           },
+          tooltip: {
+            headerFormat: '<strong>{point.point.name}</strong>',
+            pointFormat: '<br/>Count: {point.y}',
+          },
           series: seriesOpts,
           title: this.getChartTitle(options),
         };
   }
 
-  getFilteredOptions(options: FilterOptions): (SeriesSplineOptions | Highcharts.SeriesLollipopOptions)[] {
-    let splineOptions: Highcharts.SeriesSplineOptions[] | Highcharts.SeriesLollipopOptions[] = [];
+  getFilteredOptions(options: FilterOptions): (SeriesSplineOptions | Highcharts.SeriesScatterOptions)[] {
+    let splineOptions: Highcharts.SeriesSplineOptions[] | Highcharts.SeriesScatterOptions[] = [];
 
     switch (options.displayValueType) {
       case DisplayValueTypes.Average:
@@ -145,7 +162,7 @@ private minimumByLocation = new Map<
       return splineOptions?.filter((option) => contains(option.name!, options.weekDays));
     }
 
-    let copy:(SeriesSplineOptions | Highcharts.SeriesLollipopOptions)[] =
+    let copy:(SeriesSplineOptions | Highcharts.SeriesScatterOptions)[] =
       JSON.parse(JSON.stringify(splineOptions));
     copy[0].data = copy[0].data?.filter((x) => {
       return ((<Highcharts.PointOptionsObject>x).name)
@@ -178,14 +195,17 @@ private minimumByLocation = new Map<
   }
 
   private setOptionByLocation(currentDays: CurrentWeekDto[]): void {
-    let newAverageSeries: Highcharts.SeriesSplineOptions[] = [];
-    let mins: Array<Highcharts.PointOptionsObject> = [];
-    let maximums: Array<Highcharts.PointOptionsObject> = [];
+    let newAverageSeries: SeriesSplineOptions[] = [];
+    let mins: Array<PointOptionsObject> = [];
+    let maximums: Array<PointOptionsObject> = [];
 
     currentDays.forEach((value: CurrentWeekDto) => {
       value.data.forEach((gym: DailyAverage) => {
-        var minTime = formatHourMinuteFromDate(gym.minimumTime);
-        var maxTime = formatHourMinuteFromDate(gym.maxTime);
+        let minDate = new Date(gym.minimumTime);
+        let minMilliseconds = getTimeInMilliseconds(gym.minimumTime);
+        let maxDate = new Date(gym.maxTime);
+        let maxMilliseconds = getTimeInMilliseconds(gym.maxTime);
+
         newAverageSeries.push({
           id: `avg-${gym.dayOfWeek}`,
           name: gym.dayOfWeek,
@@ -199,25 +219,29 @@ private minimumByLocation = new Map<
         })
         maximums.push({
           id: `max-${gym.dayOfWeek}`,
-          name: `${gym.dayOfWeek} ${maxTime}`,
+          name: `${maxDate.toLocaleDateString(undefined, DateOptions)} ${maxDate.toLocaleTimeString()}`,
+          x: maxMilliseconds,
           y: gym.maxCount})
         mins.push({
           id: `min-${gym.dayOfWeek}`,
-          name: `${gym.dayOfWeek} ${minTime}`,
+          name: `${minDate.toLocaleDateString(undefined, DateOptions)} ${minDate.toLocaleTimeString()}`,
+          x: minMilliseconds,
           y: gym.minimumCount})
       })
       const name = GymLocations.get(value.name);
 
       if(name){
         this.averagesByLocation.set(name, newAverageSeries);
+        maximums.sort((a, b) => a.x! - b.x!);
+        mins.sort((a, b) => a.x! - b.x!);
         this.maximumByLocation.set(name, [{
           id: `max-${name}`,
-          type: 'lollipop',
+          type: 'scatter',
           data: maximums
         }]);
         this.minimumByLocation.set(name, [{
           id: `min-${name}`,
-          type: 'lollipop',
+          type: 'scatter',
           data: mins
         }]);
       }
