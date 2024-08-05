@@ -9,7 +9,6 @@ import { FooterComponent } from '../../shared/components/footer/footer.component
   template: `
   <div class="min-h-screen">
     <router-outlet name="nav"></router-outlet>
-    <app-footer></app-footer>
   </div>
   `,
   styleUrl: './weekly-averages.component.scss'

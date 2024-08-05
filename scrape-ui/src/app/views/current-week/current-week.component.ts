@@ -21,33 +21,33 @@ HC_Accessibility(Highcharts);
         <div>
           <app-filtering
             [filterOptions]="filterOptions$$()"
-            (filterOptionsChange)="
-              this.currentWeekStateService.updateFilter$.next($event)
-            "
+            (filterOptionsChange)="this.currentWeekStateService.updateFilter$.next($event)"
           ></app-filtering>
         </div>
-        @switch(componentState$$()){ @case(ComponentStates.Loading){
-        <div
-          class="bg-white rounded-xl grow flex justify-center content-center"
-        >
-          <app-loading></app-loading>
-        </div>
-        } @case(ComponentStates.Ready){
-        <highcharts-chart
-          class="bg-white rounded-xl w-full grow block"
-          [Highcharts]="highcharts"
-          [options]="chartOptions$$()"
-          [callbackFunction]="callbackFunction"
-          [oneToOne]="true"
-        ></highcharts-chart>
-        } @case(ComponentStates.Error){
-        <div class="bg-white rounded-xl w-full grow block">
-          <p>{{ error$$() }}</p>
-        </div>
-        } }
+        @switch(componentState$$()){
+          @case(ComponentStates.Loading){
+          <div
+            class="bg-white rounded-xl grow flex justify-center content-center"
+          >
+            <app-loading></app-loading>
+          </div>
+          } @case(ComponentStates.Ready){
+          <highcharts-chart
+            class="bg-white rounded-xl w-full grow block"
+            [Highcharts]="highcharts"
+            [options]="chartOptions$$()"
+            [callbackFunction]="callbackFunction"
+            [oneToOne]="true"
+          ></highcharts-chart>
+          } @case(ComponentStates.Error){
+          <div class="bg-white rounded-xl w-full grow block">
+            <p>{{ error$$() }}</p>
+          </div>
+          }
+        }
       </main>
 
-      <app-footer></app-footer>
+      <app-footer [lastUpdate]="lastUpdate$$()"></app-footer>
     </div>
   `,
   imports: [
@@ -77,6 +77,7 @@ export class CurrentWeekComponent {
   error$$: Signal<string | null> = this.currentWeekStateService.errorMessage;
   filterOptions$$: Signal<FilterOptions> =
     this.currentWeekStateService.filterOptions;
+  lastUpdate$$: Signal<string> = this.currentWeekStateService.lastUpdate;
 
   constructor() {
     effect(() => {

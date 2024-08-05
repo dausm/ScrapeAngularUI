@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, input, InputSignal } from '@angular/core';
 
 @Component({
   selector: 'app-footer',
@@ -6,12 +6,13 @@ import { Component } from '@angular/core';
   imports: [],
   template: `
     <footer class="flex justify-between mx-6 py-3">
-      <span> Last data fetch: </span>
+      <span>{{lastUpdate()}}</span>
       <span>&copy; Gym Charts {{year}}</span>
     </footer>
   `,
   styleUrl: './footer.component.scss',
 })
 export class FooterComponent {
+  lastUpdate: InputSignal<string> = input.required<string>();
   year: number = new Date().getFullYear();
 }

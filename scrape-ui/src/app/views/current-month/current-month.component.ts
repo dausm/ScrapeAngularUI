@@ -1,11 +1,8 @@
 import { Component, effect, inject, Signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import Highcharts, { PointOptionsType } from 'highcharts';
+import Highcharts from 'highcharts';
 import { HighchartsChartModule } from 'highcharts-angular';
-import HC_more from "highcharts/highcharts-more";
 import HC_Accessibility from 'highcharts/modules/accessibility';
-import HC_Dumbbell from "highcharts/modules/dumbbell";
-import HC_Lollipop from "highcharts/modules/lollipop";
 import { FooterComponent } from '../../shared/components/footer/footer.component';
 import { LoadingComponent } from '../../shared/components/loading/loading.component';
 import { ComponentStates } from '../../shared/enums/component-states';
@@ -13,9 +10,6 @@ import { CurrentMonthStateService } from './current-month-state.service';
 import { FilteringComponent } from '../../shared/components/filtering/filtering.component';
 import { FilterOptions } from '../../shared/models/filter-options.interface';
 HC_Accessibility(Highcharts);
-HC_more(Highcharts);
-HC_Dumbbell(Highcharts);
-HC_Lollipop(Highcharts);
 
 @Component({
   selector: 'app-current-month',
@@ -27,7 +21,7 @@ HC_Lollipop(Highcharts);
         <div>
           <app-filtering
             [filterOptions]="filterOptions$$()"
-            (filterOptionsChange)="this.currentMonthStateService.updateFilter.next($event)"
+            (filterOptionsChange)="this.currentMonthStateService.updateFilter$.next($event)"
           ></app-filtering>
         </div>
         @switch(componentState$$()){
@@ -53,7 +47,7 @@ HC_Lollipop(Highcharts);
         }
       </main>
 
-      <app-footer></app-footer>
+      <app-footer [lastUpdate]="lastUpdate$$()"></app-footer>
     </div>
   `,
   imports: [
@@ -80,10 +74,10 @@ export class CurrentMonthComponent {
     this.currentMonthStateService.chartOptions;
   componentState$$: Signal<ComponentStates> =
     this.currentMonthStateService.componentState;
-  error$$: Signal<string | null> =
-    this.currentMonthStateService.errorMessage;
+  error$$: Signal<string | null> = this.currentMonthStateService.errorMessage;
   filterOptions$$: Signal<FilterOptions> =
     this.currentMonthStateService.filterOptions;
+  lastUpdate$$: Signal<string> = this.currentMonthStateService.lastUpdate;
 
   constructor(){
     effect(() => {

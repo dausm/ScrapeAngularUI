@@ -1,4 +1,4 @@
-import { computed, inject, Injectable, signal } from '@angular/core';
+import { computed, inject, Injectable, Signal, signal } from '@angular/core';
 import { catchError, Observable, of, tap} from 'rxjs';
 import { CurrentDataService } from '../../core/services/current-data.service';
 import { GymLocations } from '../../shared/enums/gym-locations';
@@ -6,6 +6,8 @@ import { CurrentDayDto } from '../../shared/models/current-day.dto.interface';
 import { ComponentStates } from '../../shared/enums/component-states';
 import { HttpErrorResponse } from '@angular/common/http';
 import { setErrorMessage } from '../../shared/utility/utilities';
+import { BaseChartOptions } from '../../shared/constants/baseChartOptions';
+import { Options } from 'highcharts';
 
 @Injectable({
   providedIn: 'root',
@@ -14,37 +16,16 @@ export class CurrentDayStateService {
   private currentDataService: CurrentDataService = inject(CurrentDataService);
 
   private baseChartOptions: Highcharts.Options = {
-    chart: {
-      type: 'spline',
-      style: {
-        fontFamily: 'serif',
-        fontSize: '1.5rem',
-      },
-    },
+    ...BaseChartOptions,
     time: {
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     },
     title: {
       text: "Current Day's Occupancy",
     },
-    subtitle: {
-      text: 'A subtitle or maybe caption here',
-    },
-    legend: {
-      align: 'right',
-      verticalAlign: 'middle',
-      layout: 'vertical',
-    },
     xAxis: {
       title: {
-        text: 'Time',
-      },
-      labels: {
-        rotation: -65,
-        style: {
-          fontSize: '9px',
-          fontFamily: 'Verdana, sans-serif',
-        },
+        text: 'Time of Day',
       },
       type: 'datetime',
       crosshair: true,
@@ -55,34 +36,12 @@ export class CurrentDayStateService {
       accessibility: {
         description: 'Time of current day',
       },
-    },
-    yAxis: {
-      title: {
-        text: 'Occupancy',
-      },
-      accessibility: {
-        description: 'Occupancy',
-      },
-    },
-    tooltip: {
-      stickOnContact: true,
-    },
-    responsive: {
-      rules: [
-        {
-          condition: {
-            maxWidth: 600,
-            minHeight: 500,
-          },
-          chartOptions: {
-            legend: {
-              align: 'center',
-              verticalAlign: 'bottom',
-              layout: 'horizontal',
-            },
-          },
+      labels: {
+        rotation: -45,
+        style: {
+          fontSize: '.875rem',
         },
-      ],
+      },
     },
   };
 
@@ -90,18 +49,20 @@ export class CurrentDayStateService {
   private state = signal<CurrentDayState>({
     state: ComponentStates.Loading,
     chartOptions: this.baseChartOptions,
+    lastUpdate: '',
     error: null,
   });
 
   // Selectors (slices of state)
-  errorMessage = computed(() => this.state().error);
-  chartOptions = computed(() => this.state().chartOptions);
-  componentState = computed(() => this.state().state);
+  errorMessage: Signal<string | null> = computed(() => this.state().error);
+  chartOptions: Signal<Options> = computed(() => this.state().chartOptions);
+  componentState: Signal<ComponentStates> = computed(() => this.state().state);
+  lastUpdate: Signal<string>  = computed(() => this.state().lastUpdate);
 
   // Reducers
   constructor() {
     this.chartOptions$
-      .pipe(tap(() => this.setLoadingIndicator(true)))
+      .pipe(tap(() => this.setLoadingIndicator()))
       .subscribe((options) => this.setChartOptions(options));
   }
 
@@ -122,12 +83,14 @@ export class CurrentDayStateService {
 
   private setChartOptions(currentDays: CurrentDayDto[]): void {
     let newSeries: Highcharts.SeriesSplineOptions[] = [];
+    let lastUpdateTime: Date | null = null;
 
     if(currentDays.length > 0){
       currentDays.forEach((value: CurrentDayDto) => {
         let counts: Array<number | [number | string, number | null] | null> = [];
         for (const gym of value.data) {
           const date = new Date(gym.scrapeDateTime);
+          lastUpdateTime = !lastUpdateTime || date > lastUpdateTime ? date : lastUpdateTime;
           const milliseconds = date.getTime();
           counts.push([milliseconds, gym.count]);
         }
@@ -144,12 +107,15 @@ export class CurrentDayStateService {
       this.state.update((state) => ({
         ...state,
         state: ComponentStates.Ready,
+        lastUpdate: lastUpdateTime
+          ? `Last scrape: ${lastUpdateTime?.toLocaleTimeString()}`
+          : '',
         chartOptions: { ...this.baseChartOptions, series: newSeries },
       }));
     }
   }
 
-  private setLoadingIndicator(isLoading: boolean) {
+  private setLoadingIndicator() {
     this.state.update((state) => ({
       ...state,
       state: ComponentStates.Loading,
@@ -160,5 +126,6 @@ export class CurrentDayStateService {
 export interface CurrentDayState {
   state: ComponentStates;
   chartOptions: Highcharts.Options;
+  lastUpdate: string,
   error: string | null;
 }

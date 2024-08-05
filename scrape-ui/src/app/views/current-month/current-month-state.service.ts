@@ -13,13 +13,14 @@ import { ComponentStates } from '../../shared/enums/component-states';
 import { GymLocations } from '../../shared/enums/gym-locations';
 import { CurrentWeekDto } from '../../shared/models/current-week.dto.interface';
 import { DailyAverage } from '../../shared/models/daily-average.interface';
-import { contains, formatMonthDayFromDate, setErrorMessage } from '../../shared/utility/utilities';
-import { WeekDays } from '../../shared/enums/week-days.map';
+import { contains, formatMonthDayFromDate, getTimeInMilliseconds, setErrorMessage } from '../../shared/utility/utilities';
 import { FilterOptions } from '../../shared/models/filter-options.interface';
 import { DisplayValueTypes } from '../../shared/enums/display-value-type.enum';
-import { Options, Point, SeriesScatterOptions, SeriesSplineOptions, TitleOptions } from 'highcharts';
+import { Options, PointOptionsObject, SeriesScatterOptions, SeriesSplineOptions, TitleOptions } from 'highcharts';
 import { BaseChartOptions } from '../../shared/constants/baseChartOptions';
-import { BaseTimeChart } from '../../shared/constants/baseTimeChartOptions';
+import { BaseScatterChartOptions } from '../../shared/constants/base-scatter-chart-options';
+import { DateOptions } from '../../shared/constants/highchart-settings';
+import { DefaultFilterOptions } from '../../shared/constants/default-filter-options';
 
 @Injectable({
   providedIn: 'root',
@@ -32,33 +33,31 @@ export class CurrentMonthStateService {
     state: ComponentStates.Initial,
     chartOptions: BaseChartOptions,
     error: null,
-    filterOptions: {
-      locationName: '',
-      weekDays: Array.from(WeekDays.values()),
-      displayValueType: DisplayValueTypes.Average
-    }
+    lastUpdate: '',
+    filterOptions: DefaultFilterOptions
   });
 
   // Selectors (slices of state)
-  errorMessage = computed(() => this.state().error);
-  chartOptions = computed(() => this.state().chartOptions);
-  componentState = computed(() => this.state().state);
+  errorMessage: Signal<string | null> = computed(() => this.state().error);
+  chartOptions: Signal<Options> = computed(() => this.state().chartOptions);
+  componentState: Signal<ComponentStates> = computed(() => this.state().state);
   filterOptions: Signal<FilterOptions> = computed(() => this.state().filterOptions);
+  lastUpdate: Signal<string>  = computed(() => this.state().lastUpdate);
 
   // Sources
-  updateFilter = new Subject<FilterOptions>();
-  private averagesByLocation = new Map<
+  private averagesByLocation: Map<string, SeriesSplineOptions[]> = new Map<
     string,
-    Highcharts.SeriesSplineOptions[]
+    SeriesSplineOptions[]
   >();
-  private maximumByLocation = new Map<
+  private maximumByLocation: Map<string, SeriesScatterOptions[]> = new Map<
     string,
-    Highcharts.SeriesLollipopOptions[]
+    SeriesScatterOptions[]
   >();
-  private minimumByLocation = new Map<
+  private minimumByLocation: Map<string, SeriesScatterOptions[]> = new Map<
     string,
-    Highcharts.SeriesLollipopOptions[]
+    SeriesScatterOptions[]
   >();
+  updateFilter$: Subject<FilterOptions> = new Subject<FilterOptions>();
 
   // Reducers
   constructor() {
@@ -70,7 +69,7 @@ export class CurrentMonthStateService {
       )
       .subscribe((options) => this.setOptionByLocation(options));
 
-    this.updateFilter
+    this.updateFilter$
       .pipe(takeUntilDestroyed(), distinctUntilChanged())
       .subscribe((options) => {
         if (!options) {
@@ -88,33 +87,23 @@ export class CurrentMonthStateService {
 
   getBaseChartOptions(options: FilterOptions): Options {
     let seriesOpts = this.getFilteredOptions(options);
-    let min = new Date();
-    min.setMonth(-1);
 
     return options.displayValueType === DisplayValueTypes.Average
-      ? {
-          ...BaseChartOptions,
-          series: seriesOpts,
-          title: this.getChartTitle(options),
-        }
-      : {
-          chart: { type: 'lollipop' },
-          time: {
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          },
-          xAxis: {
-            type: 'category',
-            crosshair: false,
-            // ceiling: new Date().getTime(),
-            // floor: min.getTime()
-          },
-          series: seriesOpts,
-          title: this.getChartTitle(options),
-        };
+    ? {
+      ...BaseChartOptions,
+      series: seriesOpts,
+      title: this.getChartTitle(options),
+    }
+  : {
+      ...BaseScatterChartOptions,
+      series: seriesOpts,
+      title: this.getChartTitle(options),
+      legend: { enabled: false}
+    };
   }
 
-  getFilteredOptions(options: FilterOptions): (SeriesSplineOptions | Highcharts.SeriesLollipopOptions)[] {
-    let splineOptions: Highcharts.SeriesSplineOptions[] | Highcharts.SeriesLollipopOptions[] = [];
+  getFilteredOptions(options: FilterOptions): (SeriesSplineOptions | SeriesScatterOptions)[] {
+    let splineOptions: (SeriesSplineOptions | SeriesScatterOptions)[] = [];
 
     switch (options.displayValueType) {
       case DisplayValueTypes.Average:
@@ -136,11 +125,23 @@ export class CurrentMonthStateService {
         break;
     }
 
-    let filteredOptions = options.weekDays.length === 7
-      ? splineOptions
-      : splineOptions?.filter((option) => contains(option.name!, options.weekDays));
+    if (options.weekDays.length === 7) {
+      return splineOptions;
+    }
 
-    return filteredOptions;
+    if (options.displayValueType == DisplayValueTypes.Average) {
+      return splineOptions?.filter((option) =>
+        contains(option.name!, options.weekDays)
+      );
+    }
+
+    let copy: (SeriesSplineOptions | Highcharts.SeriesScatterOptions)[] = JSON.parse(JSON.stringify(splineOptions));
+    copy[0].data = copy[0].data?.filter((x) => {
+      return (<Highcharts.PointOptionsObject>x).name
+        ? contains((<Highcharts.PointOptionsObject>x).name!, options.weekDays)
+        : x;
+    });
+    return copy;
   }
 
   getChartTitle(options: FilterOptions): TitleOptions {
@@ -162,30 +163,44 @@ export class CurrentMonthStateService {
 
   private setOptionByLocation(currentDays: CurrentWeekDto[]): void {
     let newAverageSeries: Highcharts.SeriesSplineOptions[] = [];
-    let newMaximumSeries: Highcharts.SeriesLollipopOptions[] = [];
-    let newMinimumSeries: Highcharts.SeriesLollipopOptions[] = [];
+    let mins: Array<PointOptionsObject> = [];
+    let maximums: Array<PointOptionsObject> = [];
+    let lastUpdateTime: Date | null = null;
 
     currentDays.forEach((value: CurrentWeekDto) => {
-      value.data.forEach((day: DailyAverage) => {
+      value.data.forEach((day: DailyAverage, index: number) => {
         const formattedDate = formatMonthDayFromDate(day.dateCalculated);
-        const seriesName = `${day.dayOfWeek} ${formattedDate}`;
+        const seriesName = `${day.dayOfWeek}-${formattedDate}`;
+        let minDate = new Date(day.minimumTime);
+        let minMilliseconds = getTimeInMilliseconds(day.minimumTime);
+        let maxDate = new Date(day.maxTime);
+        let maxMilliseconds = getTimeInMilliseconds(day.maxTime);
+        const date = new Date(day.dateCalculated);
+        lastUpdateTime = !lastUpdateTime || date > lastUpdateTime ? date : lastUpdateTime;
+
         newAverageSeries.push({
-          id: seriesName,
+          id: `avg-${seriesName}-${index}`,
           name: seriesName,
           data: day.averagesByHour,
           type: 'spline',
         });
-        newMaximumSeries.push({
-          id: seriesName,
-          name: seriesName,
-          type: 'lollipop',
-          data: [day.maxCount]
+        maximums.push({
+          id: `max-${day.dayOfWeek}-${index}`,
+          name: `${maxDate.toLocaleDateString(
+            undefined,
+            DateOptions
+          )} ${maxDate.toLocaleTimeString()}`,
+          x: maxMilliseconds,
+          y: day.maxCount,
         });
-        newMinimumSeries.push({
-          id: seriesName,
-          name: seriesName,
-          type: 'lollipop',
-          data: [day.minimumCount]
+        mins.push({
+          id: `min-${day.dayOfWeek}-${index}`,
+          name: `${minDate.toLocaleDateString(
+            undefined,
+            DateOptions
+          )} ${minDate.toLocaleTimeString()}`,
+          x: minMilliseconds,
+          y: day.minimumCount,
         });
       });
 
@@ -193,18 +208,38 @@ export class CurrentMonthStateService {
 
       if (gymName) {
         this.averagesByLocation.set(gymName, newAverageSeries);
-        this.maximumByLocation.set(gymName, newMaximumSeries);
-        this.minimumByLocation .set(gymName, newMinimumSeries);
+        maximums.sort((a, b) => a.x! - b.x!);
+        mins.sort((a, b) => a.x! - b.x!);
+        this.maximumByLocation.set(gymName, [
+          {
+            id: `max-${gymName}`,
+            type: 'scatter',
+            data: maximums,
+          },
+        ]);
+        this.minimumByLocation.set(gymName, [
+          {
+            id: `min-${gymName}`,
+            type: 'scatter',
+            data: mins,
+          },
+        ]);
       }
 
       newAverageSeries = [];
-      newMaximumSeries = [];
-      newMinimumSeries = [];
+      mins = [];
+      maximums = [];
     });
 
     this.state.update((state) => ({
       ...state,
       state: ComponentStates.Initial,
+      lastUpdate: lastUpdateTime
+          ? `Last calculated: ${lastUpdateTime?.toLocaleDateString(
+            undefined,
+            DateOptions
+          )}`
+          : '',
     }));
   }
 
@@ -221,5 +256,6 @@ export interface CurrentMonthState {
   state: ComponentStates,
   chartOptions: Highcharts.Options,
   error: string | null,
+  lastUpdate: string,
   filterOptions: FilterOptions
 }

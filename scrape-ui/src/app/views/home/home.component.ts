@@ -40,7 +40,7 @@ import { RouterLink } from '@angular/router';
                 routerLink="/current-week"
                 class="[view-transition-name:nav-second]"
               >
-                Current Week
+                Previous 7 Days
               </a>
             </li>
             <li>
@@ -48,7 +48,14 @@ import { RouterLink } from '@angular/router';
                 routerLink="/weekly-averages"
                 class="[view-transition-name:nav-third]"
               >
-                Weekly Averages
+                Previous 30 Days
+              </a>
+            </li>
+            <li>
+              <a
+                routerLink="/weekly-averages"
+                class="[view-transition-name:nav-fourth]">
+                Averages By Week
               </a>
             </li>
           </ul>

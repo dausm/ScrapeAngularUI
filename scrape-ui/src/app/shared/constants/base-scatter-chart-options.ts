@@ -1,4 +1,6 @@
-export const BaseChartOptions: Highcharts.Options = {
+import { DateTimeMaximum, DateTimeMinimum } from "./highchart-settings";
+
+export const BaseScatterChartOptions: Highcharts.Options = {
   chart: {
     type: 'scatter',
     allowMutatingData: false,
@@ -18,48 +20,30 @@ export const BaseChartOptions: Highcharts.Options = {
     layout: 'vertical',
   },
   xAxis: {
-    id: 'xAxis-linear',
+    id: 'xAxis-scatter',
     title: {
-      text: 'Time',
+      text: 'Time of Day',
     },
-    labels: {
-      rotation: -45,
-      style: {
-        fontSize: '.875rem',
-      },
-    },
-    categories: [
-      '12AM',
-      '1AM',
-      '2AM',
-      '3AM',
-      '4AM',
-      '5AM',
-      '6AM',
-      '7AM',
-      '8AM',
-      '9AM',
-      '10AM',
-      '11AM',
-      '12PM',
-      '1PM',
-      '2PM',
-      '3PM',
-      '4PM',
-      '5PM',
-      '6PM',
-      '7PM',
-      '8PM',
-      '9PM',
-      '10PM',
-      '11PM',
-    ],
-    type: 'linear',
-    crosshair: true,
     startOfWeek: 0,
-    accessibility: {
-      description: 'Time of current day',
+    type: 'datetime',
+    crosshair: true,
+    dateTimeLabelFormats: {
+      second: '%H:%M %P',
     },
+    min: DateTimeMinimum,
+    max: DateTimeMaximum,
+    showLastLabel: false,
+    showFirstLabel: false,
+  },
+  plotOptions: {
+    scatter: {
+      color: '#b2292e',
+    },
+  },
+  tooltip: {
+    stickOnContact: true,
+    headerFormat: '<strong>{point.point.name}</strong>',
+    pointFormat: '<br/>Count: {point.y}',
   },
   yAxis: {
     title: {
@@ -68,9 +52,6 @@ export const BaseChartOptions: Highcharts.Options = {
     accessibility: {
       description: 'Occupancy',
     },
-  },
-  tooltip: {
-    stickOnContact: true,
   },
   responsive: {
     rules: [
@@ -88,5 +69,8 @@ export const BaseChartOptions: Highcharts.Options = {
         },
       },
     ],
-  }
+  },
+  time: {
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  },
 };

@@ -32,13 +32,13 @@ HC_Accessibility(Highcharts);
           }
           @case(ComponentStates.Error){
             <div class="bg-white rounded-xl w-full grow block">
-              <p>{{error()}}</p>
+              <p>{{error$$()}}</p>
             </div>
           }
         }
       </main>
 
-      <app-footer></app-footer>
+      <app-footer [lastUpdate]="lastUpdate$$()"></app-footer>
     </div>
   `,
   imports: [RouterOutlet, FooterComponent, LoadingComponent, HighchartsChartModule],
@@ -53,5 +53,6 @@ export class CurrentDayComponent {
 
   chartOptions$$: Signal<Highcharts.Options> = this.currentDayStateService.chartOptions;
   componentState$$: Signal<ComponentStates> = this.currentDayStateService.componentState;
-  error: Signal<string | null> = this.currentDayStateService.errorMessage;
+  error$$: Signal<string | null> = this.currentDayStateService.errorMessage;
+  lastUpdate$$: Signal<string> = this.currentDayStateService.lastUpdate;
 }

@@ -5,6 +5,7 @@ import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { FilterOptions } from '../../models/filter-options.interface';
 import { getSelectElementValue, enumKeys } from '../../utility/utilities';
 import { DisplayValueTypes } from '../../enums/display-value-type.enum';
+import { DefaultFilterOptions } from '../../constants/default-filter-options';
 
 @Component({
   selector: 'app-filtering',
@@ -65,12 +66,11 @@ import { DisplayValueTypes } from '../../enums/display-value-type.enum';
       </select>
     </label>
 
-    <button>Reset</button>
+    <button (click)="resetToDefault()">Reset</button>
   }
   `,
 })
 export class FilteringComponent {
-  getSelectElementValue = getSelectElementValue;
   enumKeys = enumKeys;
   GymLocations: typeof GymLocations = GymLocations;
   WeekDays: typeof WeekDays = WeekDays;
@@ -82,15 +82,18 @@ export class FilteringComponent {
   filterOptionsChange = output<FilterOptions>();
   filterOptions: InputSignal<FilterOptions | undefined> = input<FilterOptions>();
   filterOptions$$ = computed(() => {
-    const current = this.filterOptions();
-    if(current){
-      // TODO set the Week day filters
-      // TODO Get Reset to work
-      this.filterDisplayValueType.setValue(current.displayValueType);
-      this.filterLocation.setValue(current.locationName);
+    const updatedOptions = this.filterOptions();
+    if(updatedOptions){
+      this.filterDisplayValueType.setValue(updatedOptions.displayValueType);
+      this.filterLocation.setValue(updatedOptions.locationName);
+      Object.keys(this.filterByDayFormGroup.controls).forEach(key => {
+        this.filterByDayFormGroup
+          .get(key)
+          ?.setValue(updatedOptions.weekDays.indexOf(key) > -1);
+      })
     }
 
-    return current
+    return updatedOptions
     }
   );
 
@@ -137,4 +140,8 @@ export class FilteringComponent {
 
     this.filterOptionsChange.emit({...options, displayValueType: newDisplayType});
   }
+
+  resetToDefault() {
+    this.filterOptionsChange.emit(DefaultFilterOptions);
+   }
 }
