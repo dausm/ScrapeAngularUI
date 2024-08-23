@@ -1,6 +1,6 @@
 import { DailyAverage } from "./daily-average.interface";
 
-export interface CurrentWeekDto {
+export interface WeeklyDataDto {
   name: string,
   data: DailyAverage[]
 }

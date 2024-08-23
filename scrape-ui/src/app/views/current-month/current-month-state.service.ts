@@ -11,7 +11,6 @@ import {
 import { CurrentDataService } from '../../core/services/current-data.service';
 import { ComponentStates } from '../../shared/enums/component-states';
 import { GymLocations } from '../../shared/enums/gym-locations';
-import { CurrentWeekDto } from '../../shared/models/current-week.dto.interface';
 import { DailyAverage } from '../../shared/models/daily-average.interface';
 import { contains, formatMonthDayFromDate, getTimeInMilliseconds, setErrorMessage } from '../../shared/utility/utilities';
 import { FilterOptions } from '../../shared/models/filter-options.interface';
@@ -21,12 +20,14 @@ import { BaseChartOptions } from '../../shared/constants/baseChartOptions';
 import { BaseScatterChartOptions } from '../../shared/constants/base-scatter-chart-options';
 import { DateOptions } from '../../shared/constants/highchart-settings';
 import { DefaultFilterOptions } from '../../shared/constants/default-filter-options';
+import { WeeklyDataDto } from '../../shared/models/weekly-data.dto.interface';
+import { AverageDataService } from '../../core/services/average-data.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CurrentMonthStateService {
-  private currentDataService: CurrentDataService = inject(CurrentDataService);
+  private averageDataService: AverageDataService = inject(AverageDataService);
 
   // Signal that holds the state (initial state)
   private state = signal<CurrentMonthState>({
@@ -61,7 +62,7 @@ export class CurrentMonthStateService {
 
   // Reducers
   constructor() {
-    this.currentDataService.currentMonthData$
+    this.averageDataService.currentMonthData$
       .pipe(
         takeUntilDestroyed(),
         tap((_) => this.setStateToLoading()),
@@ -161,13 +162,13 @@ export class CurrentMonthStateService {
     return of([]);
   }
 
-  private setOptionByLocation(currentDays: CurrentWeekDto[]): void {
+  private setOptionByLocation(currentDays: WeeklyDataDto[]): void {
     let newAverageSeries: Highcharts.SeriesSplineOptions[] = [];
     let mins: Array<PointOptionsObject> = [];
     let maximums: Array<PointOptionsObject> = [];
     let lastUpdateTime: Date | null = null;
 
-    currentDays.forEach((value: CurrentWeekDto) => {
+    currentDays.forEach((value: WeeklyDataDto) => {
       value.data.forEach((day: DailyAverage, index: number) => {
         const formattedDate = formatMonthDayFromDate(day.dateCalculated);
         const seriesName = `${day.dayOfWeek}-${formattedDate}`;
@@ -233,7 +234,7 @@ export class CurrentMonthStateService {
 
     this.state.update((state) => ({
       ...state,
-      state: ComponentStates.Initial,
+      state: ComponentStates.Ready,
       lastUpdate: lastUpdateTime
           ? `Last calculated: ${lastUpdateTime?.toLocaleDateString(
             undefined,

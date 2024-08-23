@@ -2,7 +2,7 @@ import { computed, inject, Injectable, Signal, signal } from '@angular/core';
 import { catchError, Observable, of, tap} from 'rxjs';
 import { CurrentDataService } from '../../core/services/current-data.service';
 import { GymLocations } from '../../shared/enums/gym-locations';
-import { CurrentDayDto } from '../../shared/models/current-day.dto.interface';
+import { DailyDataDto } from '../../shared/models/daily-data.dto.interface';
 import { ComponentStates } from '../../shared/enums/component-states';
 import { HttpErrorResponse } from '@angular/common/http';
 import { setErrorMessage } from '../../shared/utility/utilities';
@@ -66,7 +66,7 @@ export class CurrentDayStateService {
       .subscribe((options) => this.setChartOptions(options));
   }
 
-  private chartOptions$: Observable<CurrentDayDto[]> =
+  private chartOptions$: Observable<DailyDataDto[]> =
     this.currentDataService.currentDayData$.pipe(
       catchError((err) => this.setError(err))
     );
@@ -81,12 +81,12 @@ export class CurrentDayStateService {
     return of([]);
   }
 
-  private setChartOptions(currentDays: CurrentDayDto[]): void {
+  private setChartOptions(currentDays: DailyDataDto[]): void {
     let newSeries: Highcharts.SeriesSplineOptions[] = [];
     let lastUpdateTime: Date | null = null;
 
     if(currentDays.length > 0){
-      currentDays.forEach((value: CurrentDayDto) => {
+      currentDays.forEach((value: DailyDataDto) => {
         let counts: Array<number | [number | string, number | null] | null> = [];
         for (const gym of value.data) {
           const date = new Date(gym.scrapeDateTime);

@@ -1,6 +1,6 @@
 import { Gym } from "./gym.interface";
 
-export interface CurrentDayDto {
+export interface DailyDataDto {
   name: string,
   data: Gym[]
 }

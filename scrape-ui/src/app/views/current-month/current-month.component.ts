@@ -18,12 +18,6 @@ HC_Accessibility(Highcharts);
     <div class="stretch-layout">
       <router-outlet name="nav"></router-outlet>
       <main class="flex flex-col grow h-full py--4 mx-6">
-        <div>
-          <app-filtering
-            [filterOptions]="filterOptions$$()"
-            (filterOptionsChange)="this.currentMonthStateService.updateFilter$.next($event)"
-          ></app-filtering>
-        </div>
         @switch(componentState$$()){
           @case(ComponentStates.Loading){
           <div
@@ -32,13 +26,21 @@ HC_Accessibility(Highcharts);
             <app-loading></app-loading>
           </div>
           } @case(ComponentStates.Ready){
-          <highcharts-chart
-            class="bg-white rounded-xl w-full grow block"
-            [Highcharts]="highcharts"
-            [options]="chartOptions$$()"
-            [callbackFunction]="callbackFunction"
-            [oneToOne]="true"
-          ></highcharts-chart>
+          <div>
+            <app-filtering
+              [filterOptions]="filterOptions$$()"
+              (filterOptionsChange)="this.currentMonthStateService.updateFilter$.next($event)"
+            ></app-filtering>
+          </div>
+            @if(filterOptions$$().locationName != ''){
+              <highcharts-chart
+                class="bg-white rounded-xl w-full grow block"
+                [Highcharts]="highcharts"
+                [options]="chartOptions$$()"
+                [callbackFunction]="callbackFunction"
+                [oneToOne]="true"
+              ></highcharts-chart>
+            }
           } @case(ComponentStates.Error){
           <div class="bg-white rounded-xl w-full grow block">
             <p>{{ error$$() }}</p>

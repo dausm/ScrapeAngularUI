@@ -12,7 +12,6 @@ import {
 import { CurrentDataService } from '../../core/services/current-data.service';
 import { ComponentStates } from '../../shared/enums/component-states';
 import { GymLocations } from '../../shared/enums/gym-locations';
-import { CurrentWeekDto } from '../../shared/models/current-week.dto.interface';
 import { DailyAverage } from '../../shared/models/daily-average.interface';
 import {
   contains,
@@ -33,6 +32,7 @@ import Highcharts from 'highcharts';
 import {  DateOptions } from '../../shared/constants/highchart-settings';
 import { BaseScatterChartOptions } from '../../shared/constants/base-scatter-chart-options';
 import { DefaultFilterOptions } from '../../shared/constants/default-filter-options';
+import { WeeklyDataDto } from '../../shared/models/weekly-data.dto.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -166,7 +166,7 @@ export class CurrentWeekStateService {
     };
   }
 
-  private chartOptions$: Observable<CurrentWeekDto[]> =
+  private chartOptions$: Observable<WeeklyDataDto[]> =
     this.currentDataService.currentWeekData$.pipe(
       catchError((err) => this.setError(err))
     );
@@ -181,13 +181,13 @@ export class CurrentWeekStateService {
     return of([]);
   }
 
-  private setOptionByLocation(currentDays: CurrentWeekDto[]): void {
+  private setOptionByLocation(currentDays: WeeklyDataDto[]): void {
     let newAverageSeries: SeriesSplineOptions[] = [];
     let mins: Array<PointOptionsObject> = [];
     let maximums: Array<PointOptionsObject> = [];
     let lastUpdateTime: Date | null = null;
 
-    currentDays.forEach((value: CurrentWeekDto) => {
+    currentDays.forEach((value: WeeklyDataDto) => {
       value.data.forEach((gym: DailyAverage) => {
         let minDate = new Date(gym.minimumTime);
         let minMilliseconds = getTimeInMilliseconds(gym.minimumTime);
@@ -256,7 +256,7 @@ export class CurrentWeekStateService {
 
     this.state.update((state) => ({
       ...state,
-      state: ComponentStates.Initial,
+      state: ComponentStates.Ready,
       lastUpdate: lastUpdateTime
           ? `Last calculated: ${lastUpdateTime?.toLocaleDateString(
             undefined,
