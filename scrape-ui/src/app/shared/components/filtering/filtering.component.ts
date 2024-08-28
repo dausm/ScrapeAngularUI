@@ -36,6 +36,7 @@ import { DefaultFilterOptions } from '../../constants/default-filter-options';
       </select>
     </label>
 
+    @if(filterOptions$$()!.weekDays){
     <fieldset class="inline-flex py-2 my-2" [formGroup]="filterByDayFormGroup">
       <legend>Filter by week day:</legend>
       @for(day of WeekDays.keys(); track $index){
@@ -45,6 +46,7 @@ import { DefaultFilterOptions } from '../../constants/default-filter-options';
       </label>
       }
     </fieldset>
+    }
 
     <label>
       <span>Display Data By:</span>
@@ -86,11 +88,13 @@ export class FilteringComponent {
     if(updatedOptions){
       this.filterDisplayValueType.setValue(updatedOptions.displayValueType);
       this.filterLocation.setValue(updatedOptions.locationName);
-      Object.keys(this.filterByDayFormGroup.controls).forEach(key => {
-        this.filterByDayFormGroup
-          .get(key)
-          ?.setValue(updatedOptions.weekDays.indexOf(key) > -1);
-      })
+      if(updatedOptions.weekDays){
+        Object.keys(this.filterByDayFormGroup.controls).forEach(key => {
+          this.filterByDayFormGroup
+            .get(key)
+            ?.setValue(updatedOptions.weekDays!.indexOf(key) > -1);
+        })
+      }
     }
 
     return updatedOptions

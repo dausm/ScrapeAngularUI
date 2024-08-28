@@ -5,7 +5,7 @@ import { GymLocations } from '../../shared/enums/gym-locations';
 import { DailyDataDto } from '../../shared/models/daily-data.dto.interface';
 import { ComponentStates } from '../../shared/enums/component-states';
 import { HttpErrorResponse } from '@angular/common/http';
-import { setErrorMessage } from '../../shared/utility/utilities';
+import { makeUpdater, setErrorMessage } from '../../shared/utility/utilities';
 import { BaseChartOptions } from '../../shared/constants/baseChartOptions';
 import { Options } from 'highcharts';
 
@@ -53,6 +53,8 @@ export class CurrentDayStateService {
     error: null,
   });
 
+  stateUpdater = makeUpdater(this.state);
+
   // Selectors (slices of state)
   errorMessage: Signal<string | null> = computed(() => this.state().error);
   chartOptions: Signal<Options> = computed(() => this.state().chartOptions);
@@ -62,7 +64,7 @@ export class CurrentDayStateService {
   // Reducers
   constructor() {
     this.chartOptions$
-      .pipe(tap(() => this.setLoadingIndicator()))
+      .pipe(tap(() => this.stateUpdater('state', ComponentStates.Loading)))
       .subscribe((options) => this.setChartOptions(options));
   }
 
@@ -73,17 +75,14 @@ export class CurrentDayStateService {
 
   private setError(err: HttpErrorResponse) {
     const errorMessage = setErrorMessage(err);
-    this.state.update((state) => ({
-      ...state,
-      error: errorMessage,
-      state: ComponentStates.Error,
-    }));
+    this.stateUpdater('error', errorMessage)
+    this.stateUpdater('state', ComponentStates.Error)
     return of([]);
   }
 
   private setChartOptions(currentDays: DailyDataDto[]): void {
     let newSeries: Highcharts.SeriesSplineOptions[] = [];
-    let lastUpdateTime: Date | null = null;
+    let lastUpdateTime: Date | undefined;
 
     if(currentDays.length > 0){
       currentDays.forEach((value: DailyDataDto) => {
@@ -103,23 +102,11 @@ export class CurrentDayStateService {
           type: 'spline',
         });
       });
-
-      this.state.update((state) => ({
-        ...state,
-        state: ComponentStates.Ready,
-        lastUpdate: lastUpdateTime
-          ? `Last scrape: ${lastUpdateTime?.toLocaleTimeString()}`
-          : '',
-        chartOptions: { ...this.baseChartOptions, series: newSeries },
-      }));
     }
-  }
 
-  private setLoadingIndicator() {
-    this.state.update((state) => ({
-      ...state,
-      state: ComponentStates.Loading,
-    }));
+    this.stateUpdater('chartOptions', { ...this.baseChartOptions, series: newSeries })
+    this.stateUpdater('lastUpdate', lastUpdateTime ? `Last scrape: ${lastUpdateTime!.toLocaleTimeString()}` : '')
+    this.stateUpdater('state', ComponentStates.Ready)
   }
 }
 

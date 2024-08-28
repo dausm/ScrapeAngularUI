@@ -14,10 +14,7 @@ export const BaseScatterChartOptions: Highcharts.Options = {
     text: "Month's Occupancy Trends",
   },
   legend: {
-    enabled: true,
-    align: 'right',
-    verticalAlign: 'middle',
-    layout: 'vertical',
+    enabled: false,
   },
   xAxis: {
     id: 'xAxis-scatter',

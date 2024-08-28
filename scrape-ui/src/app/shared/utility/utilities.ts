@@ -1,4 +1,7 @@
 import { HttpErrorResponse } from "@angular/common/http";
+import { WritableSignal } from "@angular/core";
+import { DailyAverage } from "../models/daily-average.interface";
+import { WeeklyAverage } from "../models/weekly-average.interface";
 
 export function setErrorMessage(err: HttpErrorResponse): string {
   let errorMessage: string;
@@ -14,8 +17,8 @@ export function setErrorMessage(err: HttpErrorResponse): string {
   return errorMessage;
 }
 
-export function contains(str: string, arr: string[]): boolean {
-  return arr.some(element => str.includes(element));
+export function contains(str: string, arr: string[] | undefined): boolean {
+  return arr ? arr.some(element => str.includes(element)) : true;
 }
 
 export function getSelectElementValue($event: Event): string {
@@ -52,4 +55,15 @@ export function getTimeInMilliseconds(dateAsString: string): number {
   let date = new Date(dateAsString);
   date.setFullYear(1970, 0, 1);
   return date.getTime();
+}
+
+export const makeUpdater = <T>(sg: WritableSignal<T>) =>
+  <K extends keyof T>(prop: K, value: T[K]) =>
+    sg.update(obj => ({
+      ...obj,
+      [prop]: value
+    }));
+
+export function isDailyAverage(value: DailyAverage | WeeklyAverage): value is DailyAverage {
+  return (<DailyAverage>value).dateCalculated !== undefined;
 }
