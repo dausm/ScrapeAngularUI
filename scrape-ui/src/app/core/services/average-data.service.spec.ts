@@ -1,12 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
 import { AverageDataService } from './average-data.service';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('AverageDataService', () => {
   let service: AverageDataService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({providers: [provideHttpClient(withInterceptorsFromDi())]});
     service = TestBed.inject(AverageDataService);
   });
 

@@ -11,9 +11,10 @@ describe('FooterComponent', () => {
       imports: [FooterComponent]
     })
     .compileComponents();
-    
+
     fixture = TestBed.createComponent(FooterComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('lastUpdate', 'unit test');
     fixture.detectChanges();
   });
 
