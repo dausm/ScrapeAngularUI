@@ -9,8 +9,7 @@ import { Component, input, InputSignal } from '@angular/core';
       <span>{{lastUpdate()}}</span>
       <span>&copy; Gym Charts {{year}}</span>
     </footer>
-  `,
-  styleUrl: './footer.component.scss',
+  `
 })
 export class FooterComponent {
   lastUpdate: InputSignal<string> = input.required<string>();

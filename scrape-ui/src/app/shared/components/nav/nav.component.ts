@@ -15,23 +15,23 @@ import { RouterLink } from '@angular/router';
     />
 
     <nav class="main-nav">
-      <ul class="inline-flex justify-center align-center mt-2">
-        <li>
+      <ul class="inline-flex h-full">
+        <li class="inline-flex justify-center flex-col h-full">
           <a routerLink="/current-day" class="[view-transition-name:nav-first]">
             Current Day
           </a>
         </li>
-        <li>
+        <li class="inline-flex justify-center flex-col h-full">
           <a routerLink="/current-week" class="[view-transition-name:nav-second]">
             Previous 7 Days
           </a>
         </li>
-        <li>
+        <li class="inline-flex justify-center flex-col h-full">
           <a routerLink="/current-month" class="[view-transition-name:nav-third]">
             Previous 30 Days
           </a>
         </li>
-        <li>
+        <li class="inline-flex justify-center flex-col h-full">
           <a routerLink="/weekly-averages" class="[view-transition-name:nav-fourth]">
             Averages By Week
           </a>

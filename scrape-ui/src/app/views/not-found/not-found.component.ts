@@ -14,7 +14,7 @@ import { RouterOutlet } from '@angular/router';
     </main>
   </div>
   `,
-  styleUrl: './not-found.component.scss'
+  styles: ``
 })
 export class NotFoundComponent {
 

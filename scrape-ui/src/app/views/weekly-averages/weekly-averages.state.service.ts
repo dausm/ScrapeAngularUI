@@ -18,7 +18,7 @@ export class WeeklyAveragesStateService extends FilteringBaseService {
   constructor() {
     super();
 
-    this.averageDataService.weeklyAveragesData$
+         this.averageDataService.weeklyAveragesData$
       .pipe(
         takeUntilDestroyed(),
         tap((_) => this.stateUpdater('state', ComponentStates.Loading)),

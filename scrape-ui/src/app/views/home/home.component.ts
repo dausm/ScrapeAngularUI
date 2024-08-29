@@ -63,6 +63,6 @@ import { RouterLink } from '@angular/router';
       </div>
     </div>
   `,
-  styleUrl: './home.component.scss',
+  styles: ``
 })
 export class HomeComponent {}
