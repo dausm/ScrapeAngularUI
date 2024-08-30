@@ -6,11 +6,13 @@ import { FilterOptions } from '../../models/filter-options.interface';
 import { getSelectElementValue, enumKeys } from '../../utility/utilities';
 import { DisplayValueTypes } from '../../enums/display-value-type.enum';
 import { DefaultFilterOptions } from '../../constants/default-filter-options';
+import {MatSelectModule} from '@angular/material/select';
+import {MatFormFieldModule} from '@angular/material/form-field';
 
 @Component({
   selector: 'app-filtering',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, MatSelectModule, MatFormFieldModule],
   template: `
   @if(filterOptions$$() !== undefined){
     <label>
@@ -68,11 +70,31 @@ import { DefaultFilterOptions } from '../../constants/default-filter-options';
       </select>
     </label>
 
+    <mat-form-field>
+      <mat-label>Toppings</mat-label>
+      <mat-select [formControl]="toppings" multiple>
+        <mat-select-trigger>
+          {{toppings.value?.[0] || ''}}
+          @if ((toppings.value?.length || 0) > 1) {
+            <span class="example-additional-selection">
+              (+{{(toppings.value?.length || 0) - 1}} {{toppings.value?.length === 2 ? 'other' : 'others'}})
+            </span>
+          }
+        </mat-select-trigger>
+        @for (topping of toppingList; track topping) {
+      <mat-option [value]="topping">{{topping}}</mat-option>
+    }
+      </mat-select>
+    </mat-form-field>
+
     <button (click)="resetToDefault()">Reset</button>
   }
   `,
 })
 export class FilteringComponent {
+  toppings = new FormControl('');
+
+  toppingList: string[] = ['Extra cheese', 'Mushroom', 'Onion', 'Pepperoni', 'Sausage', 'Tomato'];
   enumKeys = enumKeys;
   GymLocations: typeof GymLocations = GymLocations;
   WeekDays: typeof WeekDays = WeekDays;
