@@ -2,6 +2,7 @@ import { HttpErrorResponse } from "@angular/common/http";
 import { WritableSignal } from "@angular/core";
 import { DailyAverage } from "../models/daily-average.interface";
 import { WeeklyAverage } from "../models/weekly-average.interface";
+import { defer } from "rxjs";
 
 export function setErrorMessage(err: HttpErrorResponse): string {
   let errorMessage: string;
@@ -66,4 +67,16 @@ export const makeUpdater = <T>(sg: WritableSignal<T>) =>
 
 export function isDailyAverage(value: DailyAverage | WeeklyAverage): value is DailyAverage {
   return (<DailyAverage>value).dateCalculated !== undefined;
+}
+
+/** Create async observable that emits-once and completes after a JS engine turn */
+export function asyncData<T>(data: T) {
+  return defer(() => Promise.resolve(data));
+}
+
+/**
+ * Create async observable error that errors after a JS engine turn
+ */
+export function asyncError<T>(errorObject: any) {
+  return defer(() => Promise.reject(errorObject));
 }

@@ -1,13 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { CurrentMonthComponent } from './current-month.component';
-import { Spy, createSpyFromClass } from 'jasmine-auto-spies';
+import { Spy } from 'jasmine-auto-spies';
 import { CurrentMonthStateService } from './current-month-state.service';
+import { WritableSignal, signal } from '@angular/core';
+import { Options } from 'highcharts';
+import { BaseChartOptions } from '../../shared/constants/baseChartOptions';
+import { DefaultFilterOptions } from '../../shared/constants/default-filter-options';
+import { ComponentStates } from '../../shared/enums/component-states';
 
 describe('CurrentMonthComponent', () => {
   let component: CurrentMonthComponent;
   let fixture: ComponentFixture<CurrentMonthComponent>;
   let mockCurrentDayStateService: Spy<CurrentMonthStateService>;
+  let mockChartOptions: WritableSignal<Options> = signal(BaseChartOptions);
+  let componentState: WritableSignal<ComponentStates> = signal(ComponentStates.Ready);
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -15,15 +22,13 @@ describe('CurrentMonthComponent', () => {
       providers: [
         {
           provide: CurrentMonthStateService,
-          useValue: createSpyFromClass(CurrentMonthStateService, {
-            methodsToSpyOn: [
-              'chartOptions',
-              'errorMessage',
-              'filterOptions',
-              'componentState',
-              'lastUpdate'
-            ]
-          })
+          useValue: {
+            chartOptions: mockChartOptions,
+            errorMessage: signal(''),
+            filterOptions: signal({...DefaultFilterOptions, locationName: 'WKP'}),
+            componentState: componentState,
+            lastUpdate: signal(''),
+          }
         }
       ]
     })
@@ -37,5 +42,30 @@ describe('CurrentMonthComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should update the chartRef when update chartOptions are passed', () => {
+    let spy = spyOn(component.chartRef, 'update')
+    mockChartOptions.set({...BaseChartOptions, series: [
+      {
+        id: '123b',
+        data: [1,2,3],
+        type: 'spline',
+      },
+      {
+        id: '123bc',
+        data: [2,3,4],
+        type: 'spline',
+      },
+      {
+        id: '123bcd',
+        data: [3,4,5,6],
+        type: 'spline',
+      },
+    ]})
+
+    fixture.detectChanges();
+
+    expect(spy).toHaveBeenCalled();
   });
 });

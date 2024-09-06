@@ -1,14 +1,19 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { createSpyFromClass, Spy } from 'jasmine-auto-spies';
+import { Spy } from 'jasmine-auto-spies';
 import { CurrentDayComponent } from './current-day.component';
 import { CurrentDayStateService } from './current-day.state.service';
 import { BaseChartOptions } from '../../shared/constants/baseChartOptions';
 import { ComponentStates } from '../../shared/enums/component-states';
+import { WritableSignal, signal } from '@angular/core';
+import { Options } from 'highcharts';
+import { DefaultFilterOptions } from '../../shared/constants/default-filter-options';
 
 describe('CurrentDayComponent', () => {
   let component: CurrentDayComponent;
   let fixture: ComponentFixture<CurrentDayComponent>;
   let mockCurrentDayStateService: Spy<CurrentDayStateService>;
+  let mockChartOptions: WritableSignal<Options> = signal(BaseChartOptions);
+  let componentState: WritableSignal<ComponentStates> = signal(ComponentStates.Ready);
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -16,14 +21,13 @@ describe('CurrentDayComponent', () => {
       providers: [
         {
           provide: CurrentDayStateService,
-          useValue: createSpyFromClass(CurrentDayStateService, {
-            methodsToSpyOn: [
-              'chartOptions',
-              'errorMessage',
-              'componentState',
-              'lastUpdate'
-            ]
-          })
+          useValue: {
+            chartOptions: mockChartOptions,
+            errorMessage: signal(''),
+            filterOptions: signal({...DefaultFilterOptions, locationName: 'WKP'}),
+            componentState: componentState,
+            lastUpdate: signal(''),
+          }
         }
       ]
     })
