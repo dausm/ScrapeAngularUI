@@ -24,7 +24,7 @@ export class WeeklyAveragesStateService extends FilteringBaseService {
         tap((_) => this.stateUpdater('state', ComponentStates.Loading)),
         catchError((err) => super.setError(err))
       )
-      .subscribe((options) => super.setOptionByLocation(options, false));
+      .subscribe((options) => super.setOptionByLocation(options, false, true));
 
       this.stateUpdater('filterOptions', {
         locationName: '',

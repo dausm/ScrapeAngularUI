@@ -70,38 +70,39 @@ import {MatFormFieldModule} from '@angular/material/form-field';
       </select>
     </label>
 
-    <mat-form-field>
-      <mat-label>Toppings</mat-label>
-      <mat-select [formControl]="toppings" multiple>
-        <mat-select-trigger>
-          {{toppings.value?.[0] || ''}}
-          @if ((toppings.value?.length || 0) > 1) {
-            <span class="example-additional-selection">
-              (+{{(toppings.value?.length || 0) - 1}} {{toppings.value?.length === 2 ? 'other' : 'others'}})
-            </span>
+    @if(filterOptions$$()!.multiSelectOptions){
+      <mat-form-field>
+        <mat-label>Select Data to Display</mat-label>
+        <mat-select [formControl]="multiSelect" multiple (selectionChange)="filterSelectedOptions()">
+          <mat-select-trigger>
+            {{multiSelect.value?.[0] || ''}}
+            @if ((multiSelect.value?.length || 0) > 1) {
+              <span class="example-additional-selection">
+                (+{{(multiSelect.value?.length || 0) - 1}} {{multiSelect.value?.length === 2 ? 'other' : 'others'}})
+              </span>
+            }
+          </mat-select-trigger>
+          @for (topping of filterSelectionList; track topping) {
+            <mat-option [value]="topping">{{topping}}</mat-option>
           }
-        </mat-select-trigger>
-        @for (topping of toppingList; track topping) {
-      <mat-option [value]="topping">{{topping}}</mat-option>
+        </mat-select>
+      </mat-form-field>
     }
-      </mat-select>
-    </mat-form-field>
 
     <button (click)="resetToDefault()">Reset</button>
   }
   `,
 })
 export class FilteringComponent {
-  toppings = new FormControl('');
-
-  toppingList: string[] = ['Extra cheese', 'Mushroom', 'Onion', 'Pepperoni', 'Sausage', 'Tomato'];
   enumKeys = enumKeys;
   GymLocations: typeof GymLocations = GymLocations;
   WeekDays: typeof WeekDays = WeekDays;
   DisplayValueTypes: typeof DisplayValueTypes = DisplayValueTypes;
 
+  filterSelectionList: string[] = [];
   filterDisplayValueType = new FormControl<DisplayValueTypes>(DisplayValueTypes.Average);
   filterLocation = new FormControl('');
+  multiSelect = new FormControl('');
 
   filterOptionsChange = output<FilterOptions>();
   filterOptions: InputSignal<FilterOptions | undefined> = input<FilterOptions>();
@@ -110,6 +111,8 @@ export class FilteringComponent {
     if(updatedOptions){
       this.filterDisplayValueType.setValue(updatedOptions.displayValueType);
       this.filterLocation.setValue(updatedOptions.locationName);
+      this.multiSelect.setValue(updatedOptions.multiSelectSelected ?? '');
+      this.filterSelectionList = updatedOptions.multiSelectOptions ?? [];
       if(updatedOptions.weekDays){
         Object.keys(this.filterByDayFormGroup.controls).forEach(key => {
           this.filterByDayFormGroup
@@ -146,28 +149,33 @@ export class FilteringComponent {
     return days;
   }
 
-  filterLocationChange($event: Event) {
+  filterLocationChange($event: Event): void {
     const options: FilterOptions = this.filterOptions$$()!;
     const newLocation = getSelectElementValue($event)
 
     this.filterOptionsChange.emit({...options, locationName: newLocation});
   }
 
-  filterWeekDaysChange(){
+  filterWeekDaysChange(): void {
     const options: FilterOptions = this.filterOptions$$()!;
     const newWeekDays = this.getActiveWeekDays();
 
     this.filterOptionsChange.emit({...options, weekDays: newWeekDays});
   }
 
-  filterDisplayTypeChange() {
-    const options: FilterOptions = this.filterOptions$$()!;
-    const newDisplayType = this.filterDisplayValueType.value!;
-
-    this.filterOptionsChange.emit({...options, displayValueType: newDisplayType});
+  filterDisplayTypeChange(): void {
+    this.filterOptionsChange.emit({
+      ...this.filterOptions$$()!,
+      displayValueType: this.filterDisplayValueType.value!});
   }
 
-  resetToDefault() {
+  filterSelectedOptions(): void {
+    this.filterOptionsChange.emit({
+      ...this.filterOptions$$()!,
+      multiSelectSelected: this.multiSelect.value!});
+  }
+
+  resetToDefault(): void {
     this.filterOptionsChange.emit(DefaultFilterOptions);
    }
 }

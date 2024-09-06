@@ -129,6 +129,12 @@ export class FilteringBaseService {
         break;
     }
 
+    const multiSelect = this.state().filterOptions.multiSelectSelected;
+    if(multiSelect
+      && multiSelect.length > 0){
+        splineOptions = splineOptions.filter(x => multiSelect.indexOf(x.name!) > -1);
+      }
+
     if (options.weekDays?.length === 7) {
       return splineOptions;
     }
@@ -157,10 +163,12 @@ export class FilteringBaseService {
 
   setOptionByLocation(
     currentDays: WeeklyDataDto[] | WeeklyAverageByLocation[],
-    isLargeSeries: boolean): void {
+    isLargeSeries: boolean = false,
+    isMultiSelectData: boolean = false): void {
     let newAverageSeries: Highcharts.SeriesSplineOptions[] = [];
     let mins: Array<PointOptionsObject> = [];
     let maximums: Array<PointOptionsObject> = [];
+    let multiSelectOptions: Set<string> = new Set();
     let lastUpdateTime: Date | undefined;
 
     currentDays.forEach((value: WeeklyDataDto | WeeklyAverageByLocation) => {
@@ -206,6 +214,7 @@ export class FilteringBaseService {
             x: minMilliseconds,
             y: day.minimumCount,
           });
+          multiSelectOptions.add(seriesName);
         });
       }
       else
@@ -240,7 +249,8 @@ export class FilteringBaseService {
             name: `${minDate.toLocaleDateString( undefined, DateOptions )} ${minDate.toLocaleTimeString()}`,
             x: minMilliseconds,
             y: week.minimumCount,
-        });
+          });
+          multiSelectOptions.add(seriesName);
       });
     }
 
@@ -276,6 +286,7 @@ export class FilteringBaseService {
       ? `Last calculated: ${lastUpdateTime?.toLocaleDateString( undefined, DateOptions)}`
       : '',)
     this.stateUpdater('state', ComponentStates.Ready);
+    this.stateUpdater('filterOptions', {...this.state().filterOptions, multiSelectOptions: [...multiSelectOptions]})
   }
 }
 
