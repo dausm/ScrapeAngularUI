@@ -8,6 +8,13 @@
   --theme-base: #141414;
   --theme-base-offset: #2F2F2F;
   --these-base-text: #eee7d9;
+  --mat-select-panel-background-color: transparent;
+  --mdc-filled-text-field-container-color: transparent;
+  --mdc-filled-text-field-label-text-color: #eee7d9;
+}
+
+.mat-mdc-form-field-infix {
+  min-width: 228px;
 }
 
 .bg-base-offset {

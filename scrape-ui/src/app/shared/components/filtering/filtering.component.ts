@@ -8,90 +8,102 @@ import { DisplayValueTypes } from '../../enums/display-value-type.enum';
 import { DefaultFilterOptions } from '../../constants/default-filter-options';
 import {MatSelectModule} from '@angular/material/select';
 import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatExpansionModule} from '@angular/material/expansion';
 
 @Component({
   selector: 'app-filtering',
   standalone: true,
-  imports: [ReactiveFormsModule, MatSelectModule, MatFormFieldModule],
+  imports: [ReactiveFormsModule, MatSelectModule, MatFormFieldModule, MatExpansionModule],
   template: `
+  <div class="flex items-start gap-2 mb-4">
   @if(filterOptions$$() !== undefined){
-    <label>
-      <span class="pr-2">Select a gym location:</span>
-      <select
-        [formControl]="filterLocation"
-        class="rounded-full text-black my-2"
-        (change)="filterLocationChange($event)"
-      >
-        @if(filterOptions$$()!.locationName === ''){
-          <option selected></option>
-        }
-        @for(location of GymLocations.keys(); track $index){
-        <option
-          [attr.selected]="filterOptions$$()!.locationName === GymLocations.get(location)
-            ? ''
-            : null"
-          [attr.value]="GymLocations.get(location)"
+    <div class="flex-initial">
+      <label>
+        <span class="pr-2">Location:</span>
+        <select
+          [formControl]="filterLocation"
+          class="rounded-full text-black my-2"
+          (change)="filterLocationChange($event)"
         >
-          {{ GymLocations.get(location) }}
-        </option>
-        }
-      </select>
-    </label>
-
-    @if(filterOptions$$()!.weekDays){
-    <fieldset class="inline-flex py-2 my-2" [formGroup]="filterByDayFormGroup">
-      <legend>Filter by week day:</legend>
-      @for(day of WeekDays.keys(); track $index){
-      <label [for]="day" class="inline-flex items-center mx-3">
-        <input type="checkbox" [id]="day" name="weekDay" [formControlName]="WeekDays.get(day)!" (change)="filterWeekDaysChange()"/>
-        <span class="ml-2">{{ WeekDays.get(day)! }}</span>
-      </label>
-      }
-    </fieldset>
-    }
-
-    <label>
-      <span>Display Data By:</span>
-      <select
-        [formControl]="filterDisplayValueType"
-        class="rounded-full text-black my-2"
-        (change)="filterDisplayTypeChange()"
-      >
-      @for(display of enumKeys(DisplayValueTypes); track $index){
-        <option
-          [attr.selected]="filterOptions$$()!.displayValueType === DisplayValueTypes[display]
-            ? ''
-            : null"
-          [attr.value]="DisplayValueTypes[display]"
-        >
-          {{ DisplayValueTypes[display] }}
-        </option>
-      }
-      </select>
-    </label>
-
-    @if(filterOptions$$()!.multiSelectOptions){
-      <mat-form-field>
-        <mat-label>Select Data to Display</mat-label>
-        <mat-select [formControl]="multiSelect" multiple (selectionChange)="filterSelectedOptions()">
-          <mat-select-trigger>
-            {{multiSelect.value?.[0] || ''}}
-            @if ((multiSelect.value?.length || 0) > 1) {
-              <span class="example-additional-selection">
-                (+{{(multiSelect.value?.length || 0) - 1}} {{multiSelect.value?.length === 2 ? 'other' : 'others'}})
-              </span>
-            }
-          </mat-select-trigger>
-          @for (topping of filterSelectionList; track topping) {
-            <mat-option [value]="topping">{{topping}}</mat-option>
+          @if(filterOptions$$()!.locationName === ''){
+            <option selected></option>
           }
-        </mat-select>
-      </mat-form-field>
-    }
+          @for(location of GymLocations.keys(); track $index){
+          <option
+            [attr.selected]="filterOptions$$()!.locationName === GymLocations.get(location)
+              ? ''
+              : null"
+            [attr.value]="GymLocations.get(location)"
+          >
+            {{ GymLocations.get(location) }}
+          </option>
+          }
+        </select>
+      </label>
+    </div>
 
-    <button (click)="resetToDefault()">Reset</button>
+    <div class="flex-auto">
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>Filter</mat-panel-title>
+        </mat-expansion-panel-header>
+        @if(filterOptions$$()!.weekDays){
+      <fieldset class="inline-flex py-2 my-2" [formGroup]="filterByDayFormGroup">
+        <legend>Filter by week day:</legend>
+        @for(day of WeekDays.keys(); track $index){
+        <label [for]="day" class="inline-flex items-center mx-3">
+          <input type="checkbox" [id]="day" name="weekDay" [formControlName]="WeekDays.get(day)!" (change)="filterWeekDaysChange()"/>
+          <span class="ml-2">{{ WeekDays.get(day)! }}</span>
+        </label>
+        }
+      </fieldset>
+      }
+
+      <label>
+        <span>Display Data By:</span>
+        <select
+          [formControl]="filterDisplayValueType"
+          class="rounded-full text-black my-2"
+          (change)="filterDisplayTypeChange()"
+        >
+        @for(display of enumKeys(DisplayValueTypes); track $index){
+          <option
+            [attr.selected]="filterOptions$$()!.displayValueType === DisplayValueTypes[display]
+              ? ''
+              : null"
+            [attr.value]="DisplayValueTypes[display]"
+          >
+            {{ DisplayValueTypes[display] }}
+          </option>
+        }
+        </select>
+      </label>
+
+      @if(filterOptions$$()!.multiSelectOptions){
+        <mat-form-field>
+          <mat-label>Select Weeks</mat-label>
+          <mat-select [formControl]="multiSelect" multiple (selectionChange)="filterSelectedOptions()" appearance="outline">
+            <mat-select-trigger>
+              {{multiSelect.value?.[0] || ''}}
+              @if ((multiSelect.value?.length || 0) > 1) {
+                <span class="example-additional-selection">
+                  (+{{(multiSelect.value?.length || 0) - 1}} {{multiSelect.value?.length === 2 ? 'other' : 'others'}})
+                </span>
+              }
+            </mat-select-trigger>
+            @for (topping of filterSelectionList; track topping) {
+              <mat-option [value]="topping">{{topping}}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      }
+      </mat-expansion-panel>
+    </div>
+
+    <button (click)="resetToDefault()" class="flex-initial rounded-full underline underline-offset-4 px-4 py-2 hover:no-underline">Reset Filters</button>
   }
-  `,
+</div>
+`,
 })
 export class FilteringComponent {
   enumKeys = enumKeys;

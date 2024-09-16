@@ -26,12 +26,10 @@ HC_Accessibility(Highcharts);
             <app-loading></app-loading>
           </div>
           } @case(ComponentStates.Ready){
-          <div>
             <app-filtering
               [filterOptions]="filterOptions$$()"
               (filterOptionsChange)="this.currentWeekStateService.updateFilter$.next($event)"
             ></app-filtering>
-          </div>
             @if(filterOptions$$().locationName != ''){
               <highcharts-chart
                 class="bg-white rounded-xl w-full grow block"
