@@ -10,8 +10,5 @@ module.exports = {
         serif: ['Merriweather', 'serif'],
       },
     },
-  },
-  plugins: [
-    require('@tailwindcss/forms')
-  ],
+  }
 }
