@@ -2,8 +2,13 @@ import { HttpErrorResponse } from "@angular/common/http";
 import { WritableSignal } from "@angular/core";
 import { DailyAverage } from "../models/daily-average.interface";
 import { WeeklyAverage } from "../models/weekly-average.interface";
-import { defer } from "rxjs";
+import { defer, Observable } from "rxjs";
 
+/**
+ * Logs the error to the console and returns the message as a string.
+ * @param err Error thrown
+ * @returns string of the error message.
+ */
 export function setErrorMessage(err: HttpErrorResponse): string {
   let errorMessage: string;
   if (err.error instanceof ErrorEvent) {
@@ -16,14 +21,6 @@ export function setErrorMessage(err: HttpErrorResponse): string {
   }
   console.error(err);
   return errorMessage;
-}
-
-export function contains(str: string, arr: string[] | undefined): boolean {
-  return arr ? arr.some(element => str.includes(element)) : true;
-}
-
-export function getSelectElementValue($event: Event): string {
-  return ($event.target as HTMLSelectElement).value ?? '';
 }
 
 /**
@@ -39,25 +36,39 @@ export function formatMonthDayFromDate(dateAsString: string): string {
 }
 
 /**
- * Formats a string as Date into hh:mm format TODO update these
- * @param dateAsString
- * @returns string in hh:mm format
+ * Takes an enum and gets the keys
+ * @param obj enum to iterate
+ * @returns An array of the enum keys
  */
-
 export function enumKeys<O extends object, K extends keyof O = keyof O>(obj: O): K[] {
   return Object.keys(obj).filter(k => !Number.isNaN(k)) as K[]
 }
 
+/**
+ * Takes an enum and gets the values as an array
+ * @param obj enum to iterate
+ * @returns An array of the enum values
+ */
 export function enumValues<O extends object>(obj: O): Array<O[keyof O]> {
   return Object.values(obj).filter(k => !Number.isNaN(k)) as Array<O[keyof O]>
 }
 
+/**
+ * Converts a string date to milliseconds.
+ * @param dateAsString string of the date
+ * @returns A number representing the milliseconds
+ */
 export function getTimeInMilliseconds(dateAsString: string): number {
   let date = new Date(dateAsString);
   date.setFullYear(1970, 0, 1);
   return date.getTime();
 }
 
+/**
+ * Creates a writable signal to update.
+ * @param sg signal to update
+ * @returns a writable signal.
+ */
 export const makeUpdater = <T>(sg: WritableSignal<T>) =>
   <K extends keyof T>(prop: K, value: T[K]) =>
     sg.update(obj => ({
@@ -65,18 +76,29 @@ export const makeUpdater = <T>(sg: WritableSignal<T>) =>
       [prop]: value
     }));
 
+/**
+ * Checks if an object is type DailyAverage
+ * @param value object to check.
+ * @returns a boolean
+ */
 export function isDailyAverage(value: DailyAverage | WeeklyAverage): value is DailyAverage {
   return (<DailyAverage>value).dateCalculated !== undefined;
 }
 
-/** Create async observable that emits-once and completes after a JS engine turn */
-export function asyncData<T>(data: T) {
+/**
+ * Create async observable that emits-once and completes after a JS engine turn.
+ * @param data data to be returned by the observable
+ * @returns an observable that succeeds
+ */
+export function asyncData<T>(data: T): Observable<Awaited<T>> {
   return defer(() => Promise.resolve(data));
 }
 
 /**
  * Create async observable error that errors after a JS engine turn
+ * @param errorObject error to be thrown
+ * @returns an observable that throws an error.
  */
-export function asyncError<T>(errorObject: any) {
+export function asyncError<T>(errorObject: any): Observable<never> {
   return defer(() => Promise.reject(errorObject));
 }

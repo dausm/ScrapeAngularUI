@@ -7,6 +7,7 @@ import { TitleOptions } from 'highcharts';
 import { BaseChartOptions } from '../../shared/constants/baseChartOptions';
 import { AverageDataService } from '../../core/services/average-data.service';
 import { FilteringBaseService } from '../../core/services/filtering-base.service';
+import { DefaultFilterOptions } from '../../shared/constants/default-filter-options';
 
 @Injectable({
   providedIn: 'root',
@@ -24,6 +25,11 @@ export class CurrentMonthStateService extends FilteringBaseService {
         catchError((err) => super.setError(err))
       )
       .subscribe((options) => super.setOptionByLocation(options, true));
+
+    this.stateUpdater('filterOptions', {
+      ...DefaultFilterOptions,
+      isWeekDaysEnabled: true
+    })
   }
 
   override getChartTitle(options: FilterOptions): TitleOptions {

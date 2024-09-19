@@ -1,5 +1,5 @@
 export enum DisplayValueTypes {
-  Average = 'Averages By Hour',
+  Average = 'Hourly Averages',
   Maximum = 'Maximum',
   Minimum = 'Minimum'
 }

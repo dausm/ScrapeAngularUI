@@ -28,6 +28,7 @@ export class WeeklyAveragesStateService extends FilteringBaseService {
 
       this.stateUpdater('filterOptions', {
         locationName: '',
+        isWeekDaysEnabled: false,
         displayValueType: DisplayValueTypes.Average
       })
   }

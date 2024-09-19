@@ -18,20 +18,20 @@ HC_Accessibility(Highcharts);
       <main class="flex flex-col grow h-full py-4 mx-6">
         @switch(componentState$$()){
           @case(ComponentStates.Loading){
-            <div class="bg-white rounded-xl grow flex justify-center content-center">
+            <div class="bg-white rounded grow flex justify-center content-center">
               <app-loading></app-loading>
             </div>
           }
           @case(ComponentStates.Ready){
             <highcharts-chart
-              class="bg-white rounded-xl w-full grow block"
+              class="bg-white rounded w-full grow block"
               [Highcharts]="highcharts"
               [options]="chartOptions$$()!"
               [callbackFunction]="callbackFunction"
             ></highcharts-chart>
           }
           @case(ComponentStates.Error){
-            <div class="bg-white rounded-xl w-full grow block">
+            <div class="bg-white rounded w-full grow block">
               <p>{{error$$()}}</p>
             </div>
           }

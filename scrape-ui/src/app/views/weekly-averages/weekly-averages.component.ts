@@ -25,7 +25,7 @@ import { HighchartsChartModule } from 'highcharts-angular';
         @switch(componentState$$()){
           @case(ComponentStates.Loading){
           <div
-            class="bg-white rounded-xl grow flex justify-center content-center"
+            class="bg-white rounded grow flex justify-center content-center"
           >
             <app-loading></app-loading>
           </div>
@@ -36,7 +36,7 @@ import { HighchartsChartModule } from 'highcharts-angular';
             ></app-filtering>
             @if(filterOptions$$().locationName != ''){
               <highcharts-chart
-                class="bg-white rounded-xl w-full grow block"
+                class="bg-white rounded w-full grow block"
                 [Highcharts]="highcharts"
                 [options]="chartOptions$$()"
                 [callbackFunction]="callbackFunction"
@@ -44,7 +44,7 @@ import { HighchartsChartModule } from 'highcharts-angular';
               ></highcharts-chart>
             }
           } @case(ComponentStates.Error){
-          <div class="bg-white rounded-xl w-full grow block">
+          <div class="bg-white rounded w-full grow block">
             <p>{{ error$$() }}</p>
           </div>
           }

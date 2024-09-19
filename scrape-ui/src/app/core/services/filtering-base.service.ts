@@ -11,7 +11,6 @@ import { FilterOptions } from '../../shared/models/filter-options.interface';
 import { ComponentStates } from '../../shared/enums/component-states';
 import { DisplayValueTypes } from '../../shared/enums/display-value-type.enum';
 import {
-  contains,
   formatMonthDayFromDate,
   getTimeInMilliseconds,
   isDailyAverage,
@@ -130,10 +129,17 @@ export class FilteringBaseService {
     }
 
     const multiSelect = this.state().filterOptions.multiSelectSelected;
-    if(multiSelect
-      && multiSelect.length > 0){
-        splineOptions = splineOptions.filter(x => multiSelect.indexOf(x.name!) > -1);
+    if(multiSelect && multiSelect.length > 0){
+      if(options.displayValueType === DisplayValueTypes.Average){
+        splineOptions = splineOptions.filter(x => multiSelect.indexOf(x.id!) > -1);
+      } else {
+        splineOptions = [{
+          ...splineOptions[0],
+          data: splineOptions[0]?.data?.filter(x =>
+            multiSelect.indexOf((<Highcharts.PointOptionsObject>x)!.id ?? '') > -1)
+        }]
       }
+    }
 
     if (options.weekDays?.length === 7) {
       return splineOptions;
@@ -141,15 +147,15 @@ export class FilteringBaseService {
 
     if (options.displayValueType == DisplayValueTypes.Average) {
       return splineOptions?.filter((option) =>
-        contains(option.name!, options.weekDays)
+        options.weekDays?.includes((<Highcharts.PointOptionsObject>option).name!)
       );
     }
 
     let copy: (SeriesSplineOptions | Highcharts.SeriesScatterOptions)[] =
       JSON.parse(JSON.stringify(splineOptions));
-    copy[0].data = copy[0].data?.filter((x) => {
+    copy[0].data = copy[0]?.data?.filter((x) => {
       return (<Highcharts.PointOptionsObject>x).name
-        ? contains((<Highcharts.PointOptionsObject>x).name!, options.weekDays)
+        ? options.weekDays?.indexOf((<Highcharts.PointOptionsObject>x).name!)
         : x;
     });
     return copy;
@@ -233,19 +239,19 @@ export class FilteringBaseService {
           lastUpdateTime = !lastUpdateTime || date > lastUpdateTime ? date : lastUpdateTime;
 
           newAverageSeries.push({
-            id: `weekly-avg-${week.id}`,
+            id: seriesName,
             name: seriesName,
             data: week.averagesByHour,
             type: 'spline',
           });
           maximums.push({
-            id: `weekly-max-${week.id}`,
+            id: seriesName,
             name: `${maxDate.toLocaleDateString( undefined, DateOptions )} ${maxDate.toLocaleTimeString()}`,
             x: maxMilliseconds,
             y: week.maxCount,
           });
           mins.push({
-            id: `weekly-min-${week.id}`,
+            id: seriesName,
             name: `${minDate.toLocaleDateString( undefined, DateOptions )} ${minDate.toLocaleTimeString()}`,
             x: minMilliseconds,
             y: week.minimumCount,
@@ -286,7 +292,9 @@ export class FilteringBaseService {
       ? `Last calculated: ${lastUpdateTime?.toLocaleDateString( undefined, DateOptions)}`
       : '',)
     this.stateUpdater('state', ComponentStates.Ready);
-    this.stateUpdater('filterOptions', {...this.state().filterOptions, multiSelectOptions: [...multiSelectOptions]})
+    if(isMultiSelectData){
+      this.stateUpdater('filterOptions', {...this.state().filterOptions, multiSelectOptions: [...multiSelectOptions]})
+    }
   }
 }
 
