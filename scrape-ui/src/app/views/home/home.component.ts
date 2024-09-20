@@ -9,7 +9,7 @@ import { RouterLink } from '@angular/router';
     <div class="grid gap-4 grid-cols-2 content-center min-h-screen">
       <div class="flex flex-col justify-center items-center">
         <img
-          src="../../../assets/Gym-Charts-Logo.svg"
+          src="../../../assets/climbing-charts-logo.svg"
           alt="Logo"
           class="home-logo [view-transition-name:logo]"
           routerLink="/"

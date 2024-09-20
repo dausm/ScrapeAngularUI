@@ -8,7 +8,7 @@ import { RouterLink } from '@angular/router';
   template: `
   <header class="flex justify-between">
     <img
-      src="../../../assets/Gym-Charts-Logo.svg"
+      src="../../../assets/climbing-charts-logo.svg"
       alt="Logo"
       class="home-logo [view-transition-name:logo]"
       routerLink="/"
