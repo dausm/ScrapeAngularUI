@@ -14,8 +14,8 @@ body {
   @include mat.input-theme($theme);
   @include mat.select-theme($theme);
   @include mat.expansion-theme($theme);
-  --mat-expansion-header-collapsed-state-height: 54px;
-  --mat-expansion-header-expanded-state-height: 54px;
+  --mat-expansion-header-collapsed-state-height: 53px;
+  --mat-expansion-header-expanded-state-height: 53px;
   --mat-expansion-container-shape: 4px;
   --mat-expansion-container-background-color: transparent;
 

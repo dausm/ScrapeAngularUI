@@ -5,13 +5,22 @@
 @tailwind utilities;
 
 :root {
-  --theme-base: #141414;
-  --theme-base-offset: #2F2F2F;
+  --theme-base: #2F2F2F;
   --these-base-text: #eee7d9;
 }
 
+.logo-nav {
+  height: 94px;
+  padding: 12px;
+  width: auto;
+}
+
+.logo-home .logo-nav {
+  height: 200px;
+}
+
 .bg-base-offset {
-  background: var(--theme-base-offset);
+  background: var(--theme-base);
   color: var(--these-base-text);
 }
 
@@ -32,6 +41,19 @@ svg.highcharts-root {
 ::view-transition-new(root) {
   animation-duration: .3s;
 }
+
+.main-nav li {
+  a {
+    @apply inline-block rounded px-4 py-2 mx-4 hover:bg-red-800 focus:bg-red-800 focus:ring-4 focus:ring-red-300 focus:outline-none;
+    color: var(--these-base-text);
+
+    &.active-link{
+      text-decoration: underline;
+      text-underline-offset: 7px;
+    }
+  }
+}
+
 
 // @keyframes fade-in {
 //   from { opacity: 0; }

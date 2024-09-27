@@ -35,6 +35,10 @@ export const BaseScatterChartOptions: Highcharts.Options = {
   plotOptions: {
     scatter: {
       color: '#b2292e',
+      marker: {
+        symbol: 'diamond',
+        radius: 8
+      }
     },
   },
   tooltip: {
