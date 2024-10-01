@@ -75,7 +75,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
             @if(filterOptions$$()!.multiSelectOptions){
             <div>
               <mat-form-field>
-                <mat-label>Select Weeks</mat-label>
+                <mat-label>Filter Weeks</mat-label>
                 <mat-select
                   [formControl]="multiSelect"
                   multiple

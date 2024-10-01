@@ -6,7 +6,7 @@ import {
   Options,
   TitleOptions,
 } from 'highcharts';
-import { distinctUntilChanged, of, Subject } from 'rxjs';
+import { distinctUntilChanged, Observable, of, Subject } from 'rxjs';
 import { FilterOptions } from '../../shared/models/filter-options.interface';
 import { ComponentStates } from '../../shared/enums/component-states';
 import { DisplayValueTypes } from '../../shared/enums/display-value-type.enum';
@@ -146,22 +146,25 @@ export class FilteringBaseService {
     }
 
     if (options.displayValueType == DisplayValueTypes.Average) {
-      return splineOptions?.filter((option) =>
-        options.weekDays?.includes((<Highcharts.PointOptionsObject>option).name!)
-      );
+      if(options.weekDays?.length){
+        return splineOptions?.filter((option) =>
+          options.weekDays?.some(day => (<Highcharts.PointOptionsObject>option).name!.indexOf(day) > -1)
+        );
+      }
+      return splineOptions
     }
 
     let copy: (SeriesSplineOptions | Highcharts.SeriesScatterOptions)[] =
       JSON.parse(JSON.stringify(splineOptions));
     copy[0].data = copy[0]?.data?.filter((x) => {
-      return (<Highcharts.PointOptionsObject>x).name
-        ? options.weekDays?.indexOf((<Highcharts.PointOptionsObject>x).name!)
+      return (<Highcharts.PointOptionsObject>x).name && options.weekDays?.length
+        ? options.weekDays?.some(day => (<Highcharts.PointOptionsObject>x).name!.indexOf(day) > -1)
         : x;
     });
     return copy;
   }
 
-  setError(err: HttpErrorResponse) {
+  setError(err: HttpErrorResponse): Observable<never[]> {
     this.stateUpdater('error', setErrorMessage(err))
     this.stateUpdater('state', ComponentStates.Error)
     return of([]);
