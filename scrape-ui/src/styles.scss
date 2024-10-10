@@ -5,8 +5,10 @@
 @tailwind utilities;
 
 :root {
-  --theme-base: #2F2F2F;
-  --these-base-text: #eee7d9;
+  --theme-base: 28, 28, 28;
+  --theme-base-text: 238, 231, 217;
+  --theme-base-accent: 252, 53, 39;
+  --theme-base-tertiary: 105, 121, 242;
 }
 
 .logo-nav {
@@ -20,8 +22,8 @@
 }
 
 .bg-base-offset {
-  background: var(--theme-base);
-  color: var(--these-base-text);
+  background: rgb(var(--theme-base));
+  color: rgb(var(--theme-base-text));
 }
 
 .stretch-layout {
@@ -45,7 +47,7 @@ svg.highcharts-root {
 .main-nav li {
   a {
     @apply inline-block rounded px-4 py-2 mx-4 hover:bg-red-800 focus:bg-red-800 focus:ring-2 focus:ring-red-300 focus:outline-none;
-    color: var(--these-base-text);
+    color: rgb(var(--these-base-text));
 
     &.active-link{
       text-decoration: underline;
