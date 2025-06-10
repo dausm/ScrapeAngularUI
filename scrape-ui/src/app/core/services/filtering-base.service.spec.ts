@@ -1,9 +1,8 @@
 import { TestBed } from "@angular/core/testing";
 import { FilteringBaseService } from "./filtering-base.service";
-import { FilterOptions } from "../../shared/models/filter-options.interface";
 import { DefaultFilterOptions } from "../../shared/constants/default-filter-options";
 import { ComponentStates } from "../../shared/enums/component-states";
-import { DisplayValueTypes } from "../../shared/enums/display-value-type.enum";
+import { DisplayValueTypes } from "../../shared/enums/display-value-type";
 
 describe('FilteringBaseService', () => {
   let service: FilteringBaseService;
@@ -16,7 +15,7 @@ describe('FilteringBaseService', () => {
     expect(service).toBeTruthy();
     expect(service.errorMessage()).toBe(null);
     expect(service.lastUpdate()).toBe('');
-    expect(service.componentState()).toBe(ComponentStates.Initial);
+    expect(service.componentState()).toBe(ComponentStates.initial);
   });
 
   it('should update state when updateFilter$ is updated', () => {
@@ -34,7 +33,7 @@ describe('FilteringBaseService', () => {
 
   it('should get maximum values when Maximum is passed to updateFilter$', () => {
     //TODO add some options in beforeEach call setOptionByLocation()
-    service.updateFilter$.next({...DefaultFilterOptions, displayValueType: DisplayValueTypes.Maximum});
+    service.updateFilter$.next({...DefaultFilterOptions, displayValueType: DisplayValueTypes.maximum});
 
     expect(service).toBeTruthy();
   });

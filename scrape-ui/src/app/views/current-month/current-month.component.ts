@@ -15,17 +15,18 @@ HC_Accessibility(Highcharts);
   selector: 'app-current-month',
   standalone: true,
   template: `
+  @defer (prefetch on idle) {
     <div class="stretch-layout">
       <router-outlet name="nav"></router-outlet>
       <main class="flex flex-col grow h-full py--4 mx-6">
         @switch(componentState$$()){
-          @case(ComponentStates.Loading){
+          @case(ComponentStates.loading){
           <div
             class="bg-white rounded grow flex justify-center content-center"
           >
             <app-loading></app-loading>
           </div>
-          } @case(ComponentStates.Ready){
+          } @case(ComponentStates.ready){
             <app-filtering
               [filterOptions]="filterOptions$$()"
               (filterOptionsChange)="this.currentMonthStateService.updateFilter$.next($event)"
@@ -39,9 +40,9 @@ HC_Accessibility(Highcharts);
                 [oneToOne]="true"
               ></highcharts-chart>
             }
-          } @case(ComponentStates.Error){
+          } @case(ComponentStates.error){
           <div class="bg-white rounded w-full grow block">
-            <p>{{ error$$() }}</p>
+            <p>{{ this.currentMonthStateService.errorMessage() }}</p>
           </div>
           }
         }
@@ -49,6 +50,7 @@ HC_Accessibility(Highcharts);
 
       <app-footer [lastUpdate]="lastUpdate$$()"></app-footer>
     </div>
+  }
   `,
   imports: [
     RouterOutlet,
@@ -72,9 +74,9 @@ export class CurrentMonthComponent {
 
   chartOptions$$: Signal<Highcharts.Options> =
     this.currentMonthStateService.chartOptions;
+    
   componentState$$: Signal<ComponentStates> =
     this.currentMonthStateService.componentState;
-  error$$: Signal<string | null> = this.currentMonthStateService.errorMessage;
   filterOptions$$: Signal<FilterOptions> =
     this.currentMonthStateService.filterOptions;
   lastUpdate$$: Signal<string> = this.currentMonthStateService.lastUpdate;

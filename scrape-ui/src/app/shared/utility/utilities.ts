@@ -38,7 +38,7 @@ export function formatMonthDayFromDate(dateAsString: string): string {
 /**
  * Takes an enum and gets the keys
  * @param obj enum to iterate
- * @returns An array of the enum keys
+ * @returns An array of the enum's keys
  */
 export function enumKeys<O extends object, K extends keyof O = keyof O>(obj: O): K[] {
   return Object.keys(obj).filter(k => !Number.isNaN(k)) as K[]

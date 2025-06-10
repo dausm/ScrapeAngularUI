@@ -1,4 +1,4 @@
-import { DisplayValueTypes } from "../enums/display-value-type.enum";
+import { DisplayValueTypes } from "../enums/display-value-type";
 
 export interface FilterOptions {
   locationName: string,

@@ -7,7 +7,7 @@ import { catchError, tap } from "rxjs";
 import { BaseChartOptions } from "../../shared/constants/baseChartOptions";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FilteringBaseService } from "../../core/services/filtering-base.service";
-import { DisplayValueTypes } from "../../shared/enums/display-value-type.enum";
+import { DisplayValueTypes } from "../../shared/enums/display-value-type";
 
 @Injectable({
   providedIn: 'root',
@@ -21,7 +21,7 @@ export class WeeklyAveragesStateService extends FilteringBaseService {
          this.averageDataService.weeklyAveragesData$
       .pipe(
         takeUntilDestroyed(),
-        tap((_) => this.stateUpdater('state', ComponentStates.Loading)),
+        tap((_) => this.stateUpdater('state', ComponentStates.loading)),
         catchError((err) => super.setError(err))
       )
       .subscribe((options) => super.setOptionByLocation(options, false, true));
@@ -29,7 +29,7 @@ export class WeeklyAveragesStateService extends FilteringBaseService {
       this.stateUpdater('filterOptions', {
         locationName: '',
         isWeekDaysEnabled: false,
-        displayValueType: DisplayValueTypes.Average
+        displayValueType: DisplayValueTypes.average
       })
   }
 

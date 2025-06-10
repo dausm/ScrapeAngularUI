@@ -15,40 +15,42 @@ HC_Accessibility(Highcharts);
   selector: 'app-current-week',
   standalone: true,
   template: `
-    <div class="stretch-layout">
-      <router-outlet name="nav"></router-outlet>
-      <main class="flex flex-col grow h-full py--4 mx-6">
-        @switch(componentState$$()){
-          @case(ComponentStates.Loading){
-          <div
-            class="bg-white rounded grow flex justify-center content-center"
-          >
-            <app-loading></app-loading>
-          </div>
-          } @case(ComponentStates.Ready){
-            <app-filtering
-              [filterOptions]="filterOptions$$()"
-              (filterOptionsChange)="this.currentWeekStateService.updateFilter$.next($event)"
-            ></app-filtering>
-            @if(filterOptions$$().locationName != ''){
-              <highcharts-chart
-                class="bg-white rounded w-full grow block"
-                [Highcharts]="highcharts"
-                [options]="chartOptions$$()"
-                [callbackFunction]="callbackFunction"
-                [oneToOne]="true"
-              ></highcharts-chart>
+    @defer (prefetch on idle) {
+      <div class="stretch-layout">
+        <router-outlet name="nav"></router-outlet>
+        <main class="flex flex-col grow h-full py--4 mx-6">
+          @switch(componentState$$()){
+            @case(ComponentStates.loading){
+            <div
+              class="bg-white rounded grow flex justify-center content-center"
+            >
+              <app-loading></app-loading>
+            </div>
+            } @case(ComponentStates.ready){
+              <app-filtering
+                [filterOptions]="filterOptions$$()"
+                (filterOptionsChange)="this.currentWeekStateService.updateFilter$.next($event)"
+              ></app-filtering>
+              @if(filterOptions$$().locationName != ''){
+                <highcharts-chart
+                  class="bg-white rounded w-full grow block"
+                  [Highcharts]="highcharts"
+                  [options]="chartOptions$$()"
+                  [callbackFunction]="callbackFunction"
+                  [oneToOne]="true"
+                ></highcharts-chart>
+              }
+            } @case(ComponentStates.error){
+            <div class="bg-white rounded w-full grow block">
+              <p>{{ error$$() }}</p>
+            </div>
             }
-          } @case(ComponentStates.Error){
-          <div class="bg-white rounded w-full grow block">
-            <p>{{ error$$() }}</p>
-          </div>
           }
-        }
-      </main>
+        </main>
 
-      <app-footer [lastUpdate]="lastUpdate$$()"></app-footer>
-    </div>
+        <app-footer [lastUpdate]="lastUpdate$$()"></app-footer>
+      </div>
+    }
   `,
   imports: [
     RouterOutlet,

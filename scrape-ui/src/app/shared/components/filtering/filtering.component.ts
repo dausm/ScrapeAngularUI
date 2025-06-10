@@ -1,10 +1,7 @@
 import { Component, computed, input, InputSignal, output } from '@angular/core';
-import { GymLocations } from '../../enums/gym-locations';
-import { WeekDays } from '../../enums/week-days.map';
+import { WeekDays } from '../../maps/week-days.map';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { FilterOptions } from '../../models/filter-options.interface';
-import { enumKeys } from '../../utility/utilities';
-import { DisplayValueTypes } from '../../enums/display-value-type.enum';
 import { DefaultFilterOptions } from '../../constants/default-filter-options';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSelectModule } from '@angular/material/select';
@@ -13,6 +10,9 @@ import {
   MatFormFieldModule,
 } from '@angular/material/form-field';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { GymLocations } from '../../maps/gym-locations.map';
+import { DisplayValueTypes } from '../../enums/display-value-type';
+import { enumKeys } from '../../utility/utilities';
 
 @Component({
   selector: 'app-filtering',
@@ -142,7 +142,7 @@ export class FilteringComponent {
 
   filterSelectionList: string[] = [];
   filterDisplayValueType = new FormControl<DisplayValueTypes>(
-    DisplayValueTypes.Average
+    DisplayValueTypes.average
   );
   filterLocation = new FormControl('');
   multiSelect = new FormControl('');

@@ -1,7 +1,7 @@
 import { computed, inject, Injectable, Signal, signal } from '@angular/core';
 import { catchError, Observable, of, tap} from 'rxjs';
 import { CurrentDataService } from '../../core/services/current-data.service';
-import { GymLocations } from '../../shared/enums/gym-locations';
+import { GymLocations } from '../../shared/maps/gym-locations.map';
 import { DailyDataDto } from '../../shared/models/daily-data.dto.interface';
 import { ComponentStates } from '../../shared/enums/component-states';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -47,7 +47,7 @@ export class CurrentDayStateService {
 
   // Signal that holds the state (initial state)
   private state = signal<CurrentDayState>({
-    state: ComponentStates.Loading,
+    state: ComponentStates.loading,
     chartOptions: this.baseChartOptions,
     lastUpdate: '',
     error: null,
@@ -64,7 +64,7 @@ export class CurrentDayStateService {
   // Reducers
   constructor() {
     this.chartOptions$
-      .pipe(tap(() => this.stateUpdater('state', ComponentStates.Loading)))
+      .pipe(tap(() => this.stateUpdater('state', ComponentStates.loading)))
       .subscribe((options) => this.setChartOptions(options));
   }
 
@@ -76,7 +76,7 @@ export class CurrentDayStateService {
   private setError(err: HttpErrorResponse) {
     const errorMessage = setErrorMessage(err);
     this.stateUpdater('error', errorMessage)
-    this.stateUpdater('state', ComponentStates.Error)
+    this.stateUpdater('state', ComponentStates.error)
     return of([]);
   }
 
@@ -106,7 +106,7 @@ export class CurrentDayStateService {
 
     this.stateUpdater('chartOptions', { ...this.baseChartOptions, series: newSeries })
     this.stateUpdater('lastUpdate', lastUpdateTime ? `Last scrape: ${lastUpdateTime!.toLocaleTimeString()}` : '')
-    this.stateUpdater('state', ComponentStates.Ready)
+    this.stateUpdater('state', ComponentStates.ready)
   }
 }
 

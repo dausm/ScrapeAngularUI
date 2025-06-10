@@ -19,17 +19,18 @@ import { HighchartsChartModule } from 'highcharts-angular';
     FilteringComponent,
     HighchartsChartModule],
   template: `
-  <div class="stretch-layout">
+  @defer (prefetch on idle) {
+    <div class="stretch-layout">
       <router-outlet name="nav"></router-outlet>
       <main class="flex flex-col grow h-full py--4 mx-6">
         @switch(componentState$$()){
-          @case(ComponentStates.Loading){
+          @case(ComponentStates.loading){
           <div
             class="bg-white rounded grow flex justify-center content-center"
           >
             <app-loading></app-loading>
           </div>
-          } @case(ComponentStates.Ready){
+          } @case(ComponentStates.ready){
             <app-filtering
               [filterOptions]="filterOptions$$()"
               (filterOptionsChange)="this.weeklyAveragesStateService.updateFilter$.next($event)"
@@ -43,7 +44,7 @@ import { HighchartsChartModule } from 'highcharts-angular';
                 [oneToOne]="true"
               ></highcharts-chart>
             }
-          } @case(ComponentStates.Error){
+          } @case(ComponentStates.error){
           <div class="bg-white rounded w-full grow block">
             <p>{{ error$$() }}</p>
           </div>
@@ -53,6 +54,7 @@ import { HighchartsChartModule } from 'highcharts-angular';
 
       <app-footer [lastUpdate]="lastUpdate$$()"></app-footer>
     </div>
+  }
   `
 })
 

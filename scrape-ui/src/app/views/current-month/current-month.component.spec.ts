@@ -14,7 +14,7 @@ describe('CurrentMonthComponent', () => {
   let fixture: ComponentFixture<CurrentMonthComponent>;
   let mockCurrentDayStateService: Spy<CurrentMonthStateService>;
   let mockChartOptions: WritableSignal<Options> = signal(BaseChartOptions);
-  let componentState: WritableSignal<ComponentStates> = signal(ComponentStates.Ready);
+  let componentState: WritableSignal<ComponentStates> = signal(ComponentStates.ready);
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

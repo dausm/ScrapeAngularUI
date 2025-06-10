@@ -21,7 +21,7 @@ export class CurrentMonthStateService extends FilteringBaseService {
     this.averageDataService.currentMonthData$
       .pipe(
         takeUntilDestroyed(),
-        tap((_) => this.stateUpdater('state', ComponentStates.Loading)),
+        tap((_) => this.stateUpdater('state', ComponentStates.loading)),
         catchError((err) => super.setError(err))
       )
       .subscribe((options) => super.setOptionByLocation(options, true));

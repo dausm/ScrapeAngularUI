@@ -9,7 +9,7 @@ import {
 import { distinctUntilChanged, Observable, of, Subject } from 'rxjs';
 import { FilterOptions } from '../../shared/models/filter-options.interface';
 import { ComponentStates } from '../../shared/enums/component-states';
-import { DisplayValueTypes } from '../../shared/enums/display-value-type.enum';
+import { DisplayValueTypes } from '../../shared/enums/display-value-type';
 import {
   formatMonthDayFromDate,
   getTimeInMilliseconds,
@@ -19,7 +19,7 @@ import {
 } from '../../shared/utility/utilities';
 import { HttpErrorResponse } from '@angular/common/http';
 import { DateOptions } from '../../shared/constants/highchart-settings';
-import { GymLocations } from '../../shared/enums/gym-locations';
+import { GymLocations } from '../../shared/maps/gym-locations.map';
 import { DailyAverage } from '../../shared/models/daily-average.interface';
 import { WeeklyDataDto } from '../../shared/models/weekly-data.dto.interface';
 import { BaseScatterChartOptions } from '../../shared/constants/base-scatter-chart-options';
@@ -35,7 +35,7 @@ import { WeeklyAverage } from '../../shared/models/weekly-average.interface';
 export class FilteringBaseService {
   // Signal that holds the state (initial state)
   private state = signal<FilteringBaseState>({
-    state: ComponentStates.Initial,
+    state: ComponentStates.initial,
     chartOptions: BaseChartOptions,
     error: null,
     lastUpdate: '',
@@ -78,12 +78,12 @@ export class FilteringBaseService {
 
         this.stateUpdater('filterOptions', options)
         this.stateUpdater('chartOptions', this.getBaseChartOptions(options))
-        this.stateUpdater('state', ComponentStates.Ready)
+        this.stateUpdater('state', ComponentStates.ready)
       });
   }
 
   getBaseChartOptions(options: FilterOptions): Options {
-    return options.displayValueType === DisplayValueTypes.Average
+    return options.displayValueType === DisplayValueTypes.average
       ? {
           ...BaseChartOptions,
           series: this.getFilteredOptions(options),
@@ -109,17 +109,17 @@ export class FilteringBaseService {
     let splineOptions: (SeriesSplineOptions | SeriesScatterOptions)[] = [];
 
     switch (options.displayValueType) {
-      case DisplayValueTypes.Average:
+      case DisplayValueTypes.average:
         splineOptions = this.averagesByLocation.has(options.locationName)
           ? this.averagesByLocation.get(options.locationName)!
           : splineOptions;
         break;
-      case DisplayValueTypes.Maximum:
+      case DisplayValueTypes.maximum:
         splineOptions = this.maximumByLocation.has(options.locationName)
           ? this.maximumByLocation.get(options.locationName)!
           : splineOptions;
         break;
-      case DisplayValueTypes.Minimum:
+      case DisplayValueTypes.minimum:
         splineOptions = this.minimumByLocation.has(options.locationName)
           ? this.minimumByLocation.get(options.locationName)!
           : splineOptions;
@@ -130,7 +130,7 @@ export class FilteringBaseService {
 
     const multiSelect = this.state().filterOptions.multiSelectSelected;
     if(multiSelect && multiSelect.length > 0){
-      if(options.displayValueType === DisplayValueTypes.Average){
+      if(options.displayValueType === DisplayValueTypes.average){
         splineOptions = splineOptions.filter(x => multiSelect.indexOf(x.id!) > -1);
       } else {
         splineOptions = [{
@@ -145,7 +145,7 @@ export class FilteringBaseService {
       return splineOptions;
     }
 
-    if (options.displayValueType == DisplayValueTypes.Average) {
+    if (options.displayValueType == DisplayValueTypes.average) {
       if(options.weekDays?.length){
         return splineOptions?.filter((option) =>
           options.weekDays?.some(day => (<Highcharts.PointOptionsObject>option).name!.indexOf(day) > -1)
@@ -166,7 +166,7 @@ export class FilteringBaseService {
 
   setError(err: HttpErrorResponse): Observable<never[]> {
     this.stateUpdater('error', setErrorMessage(err))
-    this.stateUpdater('state', ComponentStates.Error)
+    this.stateUpdater('state', ComponentStates.error)
     return of([]);
   }
 
@@ -294,7 +294,7 @@ export class FilteringBaseService {
     this.stateUpdater('lastUpdate', lastUpdateTime
       ? `Last calculated: ${lastUpdateTime?.toLocaleDateString( undefined, DateOptions)}`
       : '',)
-    this.stateUpdater('state', ComponentStates.Ready);
+    this.stateUpdater('state', ComponentStates.ready);
     if(isMultiSelectData){
       this.stateUpdater('filterOptions', {...this.state().filterOptions, multiSelectOptions: [...multiSelectOptions]})
     }

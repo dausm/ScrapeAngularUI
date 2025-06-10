@@ -14,7 +14,7 @@ import { LogoComponent } from '../logo/logo.components';
 
       <nav class="main-nav">
         <ul class="inline-flex h-full">
-          <li class="flex-col inline-flex justify-center flex-col h-full">
+          <li class="flex-col inline-flex justify-center h-full">
             <a
               routerLink="/current-day"
               routerLinkActive="active-link"
@@ -24,7 +24,7 @@ import { LogoComponent } from '../logo/logo.components';
               Current Day
             </a>
           </li>
-          <li class="flex-col inline-flex justify-center flex-col h-full">
+          <li class="flex-col inline-flex justify-center h-full">
             <a
               routerLink="/current-week"
               routerLinkActive="active-link"
@@ -34,7 +34,7 @@ import { LogoComponent } from '../logo/logo.components';
               Previous 7 Days
             </a>
           </li>
-          <li class="flex-col inline-flex justify-center flex-col h-full">
+          <li class="flex-col inline-flex justify-center h-full">
             <a
               routerLink="/current-month"
               routerLinkActive="active-link"
@@ -44,7 +44,7 @@ import { LogoComponent } from '../logo/logo.components';
               Previous 30 Days
             </a>
           </li>
-          <li class="flex-col inline-flex justify-center flex-col h-full">
+          <li class="flex-col inline-flex justify-center h-full">
             <a
               routerLink="/weekly-averages"
               routerLinkActive="active-link"

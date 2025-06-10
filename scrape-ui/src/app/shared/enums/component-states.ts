@@ -1,6 +1,6 @@
 export enum ComponentStates {
-  Loading = 'loading',
-  Error = 'error',
-  Ready = 'ready',
-  Initial = 'initial'
+  loading = 'loading',
+  error = 'error',
+  ready = 'ready',
+  initial = 'initial'
 }

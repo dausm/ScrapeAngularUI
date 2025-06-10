@@ -3,10 +3,7 @@ import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testin
 import { FilteringComponent } from './filtering.component';
 import { DefaultFilterOptions } from '../../constants/default-filter-options';
 import { By } from '@angular/platform-browser';
-import { DisplayValueTypes } from '../../enums/display-value-type.enum';
-import { DebugElement } from '@angular/core';
-import { GymLocations } from '../../enums/gym-locations';
-
+import { DisplayValueTypes } from '../../enums/display-value-type';
 describe('FilteringComponent', () => {
   let component: FilteringComponent;
   let fixture: ComponentFixture<FilteringComponent>;
@@ -46,7 +43,7 @@ describe('FilteringComponent', () => {
 
     fixture.componentRef.setInput('filterOptions', {
       locationName: '',
-      displayValueType: DisplayValueTypes.Average
+      displayValueType: DisplayValueTypes.average
     });
     fixture.detectChanges();
 
